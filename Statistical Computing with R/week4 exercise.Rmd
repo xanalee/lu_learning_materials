@@ -1,0 +1,192 @@
+---
+title: "week4 exercise"
+author: "Xiang Li"
+date: "2023-10-05"
+output: pdf_document
+---
+
+# Exercise 1
+
+# Exercise 2
+## 1
+```{r}
+library(brolgar)
+data(heights)
+heights = as.data.frame(heights)
+```
+## 2
+```{r}
+coun_hei = function(coun_name){
+  all_coun = unique(heights$country)
+  if (coun_name %in% all_coun){
+    result = heights[heights$country == coun_name, ]
+    return(result)
+  } else {
+    warning('No data are available for the requested country!!!\n')
+  }
+}
+```
+Test function in Question 2:
+```{r}
+coun_hei('China')
+coun_hei('C')
+```
+## 3
+```{r}
+coun_hei1 = function(coun_name, min_year){
+  all_coun = unique(heights$country)
+  if (coun_name %in% all_coun){
+    result = heights[(heights$country == coun_name) & (heights$year >= min_year), ]
+    if (nrow(result) > 0) {
+      return(result)
+    } else {
+      warning('No data are available for the requested min_year!!!\n')
+    }
+  } else {
+    warning('No data are available for the requested country!!!\n')
+  }
+}
+```
+Test function in Question 3:
+```{r}
+coun_hei1('China', 1930)
+coun_hei1('C', 1930)
+coun_hei1('China', 2000)
+coun_hei1('C', 2000)
+```
+# Exercise 3
+## 1
+```{r}
+f = function(x){
+  if (x <= -3) {
+    result = -5
+  } else if ((x > -3) & (x < 1)) {
+    result = log(x+5)
+  } else if (x == 1) {
+    result = 2
+  } else if ((x > 1) & (x <= 14)) {
+    result = (x+3)**(1/2)
+  } else {
+    result = log(x)
+  }
+  return(result)
+}
+```
+## 2
+```{r}
+f(-6)
+f(-4)
+f(-2)
+f(0)
+f(2)
+f(4)
+f(6)
+f(8)
+f(10)
+```
+
+# Exercise 4
+## 1
+```{r}
+func1 = function(mat){
+  if (nrow(mat) != ncol(mat)) {
+    return('This matrix is not square')
+  }
+}
+```
+## 2
+```{r}
+func2 = function(mat){
+  if (nrow(mat) != ncol(mat)) {
+    return('This matrix is not square')
+  } else {
+    d_mat = det(mat)
+    if (d_mat == 0) {
+      return('This matrix is square and has determinant 0')
+    } else {
+      inv_mat = solve(mat)
+      return(inv_mat)
+    }
+  }
+}
+```
+Test func1 and func2:
+```{r}
+mat1 = matrix(1:8, nrow=2, ncol=4)
+func1(mat1)
+func2(mat1)
+mat2 = matrix(1:9, nrow=3, ncol=3)
+func1(mat2)
+func2(mat2)
+mat3 = matrix(c(1, 0, 0, 1), nrow=2, ncol=2)
+func1(mat3)
+func2(mat3)
+```
+
+# Exercise 5
+## 1
+```{r}
+func1 = function(df) {
+  if ((nrow(df) < 5) & (ncol(df) < 5)) {
+    print(df)
+  }
+}
+```
+## 2
+```{r}
+func2 = function(df) {
+  if ((nrow(df) < 5) & (ncol(df) >= 5) & (ncol(df) <= 10)) {
+    print(df[, (ncol(df)-4):ncol(df)])
+  }
+}
+```
+## 3
+```{r}
+func3 = function(df) {
+  if ((nrow(df) < 5) & (ncol(df) >= 10)) {
+    print(df[, 1:5])
+  }
+}
+```
+## 4
+```{r}
+func4 = function(df) {
+  if ((nrow(df) >= 5) & (ncol(df) < 5)) {
+    print(df[(nrow(df)-4):nrow(df), ])
+  }
+}
+```
+## 5
+```{r}
+func5 = function(df) {
+  if ((nrow(df) >= 5) & (ncol(df) >= 5) & (ncol(df) <= 10)) {
+    print(df[(nrow(df)-4):nrow(df), (ncol(df)-4):ncol(df)])
+  }
+}
+```
+## 6
+```{r}
+func6 = function(df) {
+  if ((nrow(df) >= 5) & (ncol(df) >= 10)) {
+    print(df[(nrow(df)-4):nrow(df), 1:5])
+  }
+}
+```
+Test above functions:
+```{r}
+df1 = data.frame(a=1:2, b=1:2)
+func1(df1)
+df2 = data.frame(a=1:2, b=1:2, c=1:2, d=1:2, e=1:2, f=1:2)
+func2(df2)
+df3 = data.frame(a=1:2, b=1:2, c=1:2, d=1:2, e=1:2, f=1:2, g=1:2, h=1:2, i=1:2, j=1:2)
+func3(df3)
+df4 = data.frame(a=1:6, b=1:6)
+func4(df4)
+df5 = data.frame(a=1:6, b=1:6, c=1:6, d=1:6, e=1:6, f=1:6)
+func5(df5)
+df6 = data.frame(a=1:6, b=1:6, c=1:6, d=1:6, e=1:6, f=1:6, g=1:6, h=1:6, i=1:6, j=1:6)
+func6(df6)
+```
+
+
+

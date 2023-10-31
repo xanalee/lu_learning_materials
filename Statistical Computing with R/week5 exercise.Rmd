@@ -1,0 +1,208 @@
+---
+title: "week5 exercise"
+author: "Xiang Li"
+date: "2023-10-05"
+output: pdf_document
+---
+# Exercise 2
+```{r}
+x = c(3, 4, 6, 2, 4, 3, 8, 1, 3)
+```
+
+## 1
+```{r}
+ma = function(x, t, k){
+  s_t = max(c(t-k+1, 1))
+  result = sum(x[s_t:t])/k
+  return(result)
+}
+ma(x, 5, 3)
+ma(x, 2, 3)
+```
+## 2
+See the solution of question 1.
+## 3
+```{r}
+for (t in 1:length(x)) {
+  print(paste('The result of t=', t, ' is: ', ma(x, t, 3), sep = ''))
+}
+```
+
+# Exercise 3
+```{r}
+x = c(3, 4, 6, 2, 4, 3, 8, 1, 3)
+```
+
+## 1
+```{r}
+ma1 = function(x, t, k){
+  if (t >= k) {
+    result = mean(x[(t-k+1):t])
+  }
+  else {
+    result = NA
+  }
+  return(result)
+}
+ma1(x, 5, 3)
+ma1(x, 2, 3)
+```
+## 2
+See the solution of question 1.
+## 3
+```{r}
+for (t in 1:length(x)) {
+  print(paste('The result of t=', t, ' is: ', ma1(x, t, 3), sep = ''))
+}
+```
+
+# Exercise 4
+```{r}
+set.seed(4)
+r = 100
+A = matrix(NA, nrow = r, ncol = 5)
+A[ , 1:2] = rpois(2*r, 6)
+A[ , 3] = rgamma(r, shape = 2, scale = 1)
+A[ , 4:5] = rbinom(r, 2, 0.6)
+```
+## 1
+```{r}
+for (c in 1:ncol(A)) {
+  print(paste('The mean of column ', c, ' is: ', mean(A[, c]), sep = ''))
+}
+```
+## 2
+```{r}
+mr = c(rep(NA, nrow(A)))
+for (r in 1:nrow(A)) {
+  mr[r] = mean(A[r, ])
+}
+mr
+```
+## 3
+```{r}
+my_colMeans = function(mat) {
+  result = c(rep(NA, ncol(mat)))
+  for (c in 1:ncol(mat)) {
+    result[c] = mean(mat[ , c])
+  }
+  return(result)
+}
+my_colMeans(A)
+colMeans(A)
+```
+## 4
+```{r}
+my_colmeanNstd = function(mat) {
+  nr = ncol(mat)
+  result = data.frame(column=1:nr, mean=c(rep(NA, nr)), standard_deviation=c(rep(NA, nr)))
+  for (n in 1:nr) {
+    result[n, 'mean'] = mean(mat[,n])
+    result[n, 'standard_deviation'] = sd(mat[,n])
+  }
+  return(result)
+}
+my_colmeanNstd(A)
+```
+
+# Exercise 5
+## 1
+```{r}
+setwd('/Users/macbookpro/Desktop/learning materials/Statistical Computing with R')
+data_df = read.csv('data/irish_polls.csv')
+```
+## 2
+```{r}
+data_df[data_df == 'Not Available'] = NA
+to_decimal = function(x) {
+  return(sub('%', '', x))
+}
+data_df[, 10:21] = lapply(data_df[, 10:21], to_decimal)
+head(data_df, 5)
+```
+## 3
+```{r}
+data_df[, 10:21] = as.numeric(unlist(data_df[, 10:21]))/100
+head(data_df, 5)
+```
+## 4
+```{r}
+rec_data_df = data_df[1:10, ]
+```
+## 5
+```{r}
+mean_v = colMeans(rec_data_df[, 10:20], na.rm = TRUE)
+high_party = mean_v[(mean_v > 0.06) & (! is.na(mean_v))]
+names(high_party)
+mean_df = data.frame(party=c(names(high_party), 'Others'), mean_shares=c(unname(high_party), 1-sum(high_party)))
+```
+## 6
+```{r}
+sorted_mean_df = mean_df[order(mean_df$mean_shares, decreasing = TRUE), ]
+title = 'Distribution of Shares in Polls'
+barplot(mean_shares~party, data = sorted_mean_df, col=1:nrow(sorted_mean_df), main = title, ylim = c(0, 0.4), xlab = 'Political Party', ylab = 'Shares')
+```
+## 7
+```{r}
+pie(sorted_mean_df$mean_shares, labels = sorted_mean_df$party, col = 1:5, main = title)
+```
+## 8
+```{r}
+library(ggplot2)
+library(waffle)
+x = round(sorted_mean_df$mean_shares/0.01)
+names(x) = sorted_mean_df$party
+waffle(x, rows = 10, xlab = '1 square = 0.01 shares', title = title)
+```
+## 9
+```{r}
+pdf(file="plot/week5_Exercise5_6.pdf")
+barplot(mean_shares~party, data = sorted_mean_df, col=1:nrow(sorted_mean_df), main = title, ylim = c(0, 0.4), xlab = 'Political Party', ylab = 'Shares')
+dev.off()
+pdf(file="plot/week5_Exercise5_7.pdf")
+pie(sorted_mean_df$mean_shares, labels = sorted_mean_df$party, col = 1:5, main = title)
+dev.off()
+pdf(file="plot/week5_Exercise5_8.pdf")
+waffle(x, rows = 10, xlab = '1 square = 0.01 shares', title = title)
+dev.off()
+```
+## 10
+```{r}
+jpeg(file="plot/week5_Exercise5_6.jpg", quality = 90)
+barplot(mean_shares~party, data = sorted_mean_df, col=1:nrow(sorted_mean_df), main = title, ylim = c(0, 0.4), xlab = 'Political Party', ylab = 'Shares')
+dev.off()
+jpeg(file="plot/week5_Exercise5_7.jpg", quality = 90)
+pie(sorted_mean_df$mean_shares, labels = sorted_mean_df$party, col = 1:5, main = title)
+dev.off()
+jpeg(file="plot/week5_Exercise5_8.jpg", quality = 90)
+waffle(x, rows = 10, xlab = '1 square = 0.01 shares', title = title)
+dev.off()
+```
+
+# Exercise 6
+## 1
+```{r}
+library(psych)
+data(sat.act)
+act_df = as.data.frame(sat.act)
+```
+## 2
+## 3/4
+```{r}
+dens_ACT = density(act_df[(! is.na(act_df$ACT)), 'ACT'])
+x_ACT = unname(unlist(dens_ACT[1]))
+y_ACT = unname(unlist(dens_ACT[2]))
+dens_SATQ = density(act_df[(! is.na(act_df$SATQ)), 'SATQ'])
+x_SATQ = unname(unlist(dens_SATQ[1]))
+y_SATQ = unname(unlist(dens_SATQ[2]))
+plot(x_ACT, y_ACT, frame = FALSE, col = "red", type = 'l', xlab = "x", ylab = "y", xlim = c(-1, 900))
+lines(x_SATQ, y_SATQ, col = "blue", type = 'l')
+# legend("topright", legend=c("ACT", "SATQ"), col=c("red", "blue"), lty = c(1, 1), cex = 0.3, pt.cex = 1)
+```
+## 5/6
+```{r}
+plot(x_ACT, y_ACT, frame = FALSE, col = "red", type = 'l', xlab = "x", ylab = "y", xlim = c(-1, 900), main = 'Density Plot')
+lines(x_SATQ, y_SATQ, col = "blue", type = 'l')
+text(52.88124, 0.062899485, labels = 'ACT', col = "red", cex = 0.8)
+text(724.40507, 0.008220942, labels = 'SATQ', col = "blue", cex = 0.8)
+```

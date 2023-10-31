@@ -1,0 +1,102 @@
+---
+title: "Li_Xiang_SCwR_A1"
+author: "Xiang Li"
+date: "2023-10-10"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+library(formatR)
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+```
+# Exercise 1
+## 1
+Nothing to output.
+
+## 2
+```{r}
+data_df = read.csv('data/Coca-Cola_stock_history.csv')
+data_df$Date = as.Date(data_df$Date, format = '%Y-%m-%d')
+sub_data_df = data_df[(data_df$Date >= '2000-01-01') & 
+                        (data_df$Date <= '2019-12-31'), ]
+colnames(sub_data_df)[ncol(sub_data_df)] = 'StockSplits'
+tail(sub_data_df, 10)
+```
+## 3
+```{r}
+sub_data_df$HighVolume = sub_data_df$Volume > 9*10**6
+tail(sub_data_df, 10)
+```
+## 4
+```{r}
+temp = sub_data_df[sub_data_df$HighVolume, ]
+plot(temp$Dividends, temp$High, main = "Scatterplot High-Dividends", 
+     xlab="Dividends", ylab="High", col = 'blue', pch = 16)
+```
+If we ignore the points which dividends are equal to 0, the highest price on dividends paid day increases with the increasing of dividends. 
+
+Explanation: A company which is able to pay dividends to shareholders generally has a healthy finance. Thus, more investors would like to buy its stock. To improve the opportunity that their buy orders can deal, they will give higher bid price which may improve the highest price of that day. 
+
+## 5
+```{r}
+sub_data_df$Year = strftime(sub_data_df$Date, '%Y')
+num_col = c("Open", "High", "Low", "Close", "Volume", "Dividends", 
+            "StockSplits")
+high_value_df = aggregate(sub_data_df[, num_col], 
+                          by = list(Year=sub_data_df$Year), max)
+high_value_df
+```
+## 6
+```{r}
+plot(high_value_df$Dividends, high_value_df$High, 
+     main = "Scatterplot2 High-Dividends", xlab="Dividends(high value in Year)", 
+     ylab="High(high value in Year)", col = 'blue', pch = 16)
+```
+The positive-related relationship between dividends and high price is more clear.
+
+Missing information: The dividends values of most samples are equal to 0, but they didn't show in this plot.
+
+## 7
+```{r}
+num_col = c("Open", "High", "Low", "Close", "Volume", "Dividends", 
+            "StockSplits")
+result_ls = list()
+for (c in num_col) {
+  c_min = min(sub_data_df[, c])
+  c_min_date = as.character(sub_data_df$Date[which.min(sub_data_df[, c])])
+  c_max = max(sub_data_df[, c])
+  result_ls = c(result_ls, list(c(c, c_min, c_min_date, c_max-c_min)))
+}
+names(result_ls) = num_col
+result_ls
+```
+# Exercise 2
+```{r}
+mybeerbottlefunction = function(num) {
+  if ((num <= 0) | (length(num) > 1) | is.integer(num)) {
+    stop('The input is not available!!!!')
+  } else if (num == 1) {
+    lyric = paste('1 bottle of beer on the wall, 1 bottle of beer. Take one ', 
+                  'down, pass it around, no more bottles of beer on the wall.', 
+                  sep = '')
+    return(lyric)
+  } else {
+     lyric = paste(num, ' Bottles of Beers Song\n\n\n', sep = '')
+  loop_v = rev(2:num)
+  for (n in loop_v) {
+    lyric = paste(lyric, n, ' bottles of beer on the wall, ', n, 
+    ' bottles of beer. Take one down, pass it around, ', n-1, 
+    ' bottles of beer on the wall...\n\n\n', sep = '')
+  }
+  lyric = paste(lyric, '1 bottle of beer on the wall, 1 bottle of beer. ', 
+                'Take one down, pass it around, no more bottles of beer on the ', 
+                'wall.', sep = '')
+  return(lyric)
+  }
+}
+# cat(mybeerbottlefunction(5))
+writeLines(strwrap(mybeerbottlefunction(5), width = 100))
+```
+
+
+
