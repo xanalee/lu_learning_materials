@@ -1,0 +1,89 @@
+---
+title: "week1"
+author: "Xiang Li"
+date: "2023/10/30"
+output: pdf_document
+---
+```{r}
+# weight gain y of chickens with amount of lysine x ingested
+y = c(14.7, 17.8, 19.6, 18.4, 20.5, 21.1, 17.2, 18.7, 20.2, 16.0, 17.8, 19.4)
+x = c(0.09, 0.14, 0.18, 0.15, 0.16, 0.23, 0.11, 0.19, 0.23, 0.13, 0.17, 0.21)
+# plot the data
+plot(x, y, ylim = c(0, 22))
+```
+```{r}
+# the simple regression model
+weightgain <- lm(y ~ x)
+
+# summary output for estimates, standard error, ...
+summary(weightgain)
+```
+```{r}
+#analysis of variance table, sums of squares
+anova(weightgain)
+sst <- sum((y - mean(y))^2)
+sst
+```
+```{r}
+#alternative way, with a little bit of extra programming
+
+#calculate a model with only on intercept
+constantOnlyModel <- lm(y ~ 1)
+#the sum of squares for residuals from a model with only an intercept equals the total sum of squares
+SST <- anova(constantOnlyModel)
+#rename 'Residuals' to SST'
+row.names(SST) <- "Total"
+#add the SST to the ANOVA table
+rbind(anova(weightgain), SST)
+```
+```{r}
+## Load data
+Norway_NO2 = read.csv("Norway_NO2.csv")
+```
+```{r}
+## Matrix of scatterplots
+pairs(Norway_NO2[,1:4])
+pairs(Norway_NO2[,c(1,5,6,7,8)])
+```
+```{r}
+##  Perform a simple linear regression
+lm1 <-lm(y ~ x3, data = Norway_NO2)
+summary(lm1)
+anova(lm1)
+```
+```{r}
+## multiple linear regression model with all 7 predictors
+lmmulti <-lm(y ~ x1 + x2 + x3 + x4+ x5 + x6 + x7, data = Norway_NO2)
+summary(lmmulti)
+anova(lmmulti)
+```
+```{r}
+## Predict the concentration of NO2 at a wind speed of ...
+par(mfrow = c(1,1))
+plot (y ~ x3, data=Norway_NO2)
+```
+```{r}
+# newdata <- data.frame(x3= c(......))
+newdata <- data.frame(x1 = mean(Norway_NO2$x1), x2 = mean(Norway_NO2$x2),
+                      x3 = c(2,4,6,8),
+                      x4 = mean(Norway_NO2$x4), x5 = mean(Norway_NO2$x5),
+                      x6 = mean(Norway_NO2$x6), x7 = mean(Norway_NO2$x7))
+predict(lmmulti, newdata, se.fit = TRUE, interval = "confidence")
+```
+```{r}
+## Residuals and fitted values
+resi <- residuals(lmmulti)
+pred <- fitted(lmmulti)
+
+## Allowing two side-by-side plots
+par(mfrow = c(1,2))
+
+## Scatterplot of residual vs predicted values
+plot(resi ~ pred)
+abline(h = 0)
+title ("Homoscedasticity check")
+
+## Normal Q-Q plot
+qqnorm(resi)
+qqline(resi)
+```
