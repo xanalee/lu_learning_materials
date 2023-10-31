@@ -1,0 +1,66 @@
+---
+title: "Statistics CH9"
+author: "Xiang Li"
+date: "2023/10/26"
+output: pdf_document
+---
+# 9.1.0.1 Exercise
+## a.
+```{r}
+k = 1e5
+n = 6
+T = numeric(k)
+for (i in 1:k){
+  X = rnorm(n, mean = 0, sd = 1)
+  T[i] = max(X) - min(X)
+}
+T_cv = quantile(T, 0.95)
+T_cv
+```
+## b.
+```{r}
+X = c(2.0,2.9,-0.5,0.3,-0.8,-0.1)
+T1 = max(X) - min(X)
+T1 > T_cv
+```
+# 9.1.0.3 Exercise
+```{r}
+power = function(sigma2){
+  k = 1e5
+  rej = numeric(k)
+  for (i in 1:k){
+    X = rnorm(n, mean = 0, sd = sigma2**0.5)
+    T = max(X) - min(X)
+    rej[i] = T > T_cv
+  }
+  mean(rej)
+}
+power(2)
+```
+# 9.1.0.4 Exercise
+## a.
+```{r}
+k = 1e5
+n = 6
+T = numeric(k)
+for (i in 1:k){
+  X = rnorm(n, mean = 0, sd = 1)
+  T[i] = var(X)
+}
+T_cv = quantile(T, 0.95)
+T_cv
+```
+## b.
+```{r}
+power = function(sigma2){
+  k = 1e5
+  rej = numeric(k)
+  for (i in 1:k){
+    X = rnorm(n, mean = 0, sd = sigma2**0.5)
+    T = var(X)
+    rej[i] = T > T_cv
+  }
+  mean(rej)
+}
+power(2)
+```

@@ -1,0 +1,234 @@
+---
+title: "Statistics CH7"
+author: "Xiang Li"
+date: "2023/10/25"
+output: pdf_document
+---
+# 7.1.0.2 Exercise
+```{r}
+p1 = dbinom(125, size = 250, prob = 0.5)
+p1
+p2 = dbinom(240, size = 250, prob = 0.5)
+p2
+```
+# 7.1.0.4 Exercise
+## a.
+```{r}
+alpha = function(K){
+  pbinom(125-K-1, size = 250, prob = 0.5) + pbinom(125+K, size = 250, prob = 0.5, lower.tail = FALSE)
+}
+sapply(c(5, 10, 20), alpha)
+```
+## b.
+```{r}
+alpha1 = function(K){
+  X = rbinom(1e5, size = 250, prob = 0.5)
+  result = mean((X > 125+K) | (X < 125-K))
+  return(result)
+}
+sapply(c(5, 10, 20), alpha1)
+```
+# 7.1.0.7 Exercise
+```{r}
+alpha = function(K){
+  pbinom(125-K-1, size = 250, prob = 0.5) + pbinom(125+K, size = 250, prob = 0.5, lower.tail = FALSE)
+}
+K = 1
+result = alpha(K)
+while (result > 0.05){
+  K = K + 1
+  result = alpha(K)
+}
+result
+K
+K = 1
+result = alpha(K)
+while (result > 0.1){
+  K = K + 1
+  result = alpha(K)
+}
+result
+K
+K = 1
+result = alpha(K)
+while (result > 0.01){
+  K = K + 1
+  result = alpha(K)
+}
+result
+K
+```
+# 7.1.0.8 Exercise
+```{r}
+X = rbinom(1e5, size = 250, prob = 0.5)
+T = abs(X-125)
+hist(T, 100, main="distribution of T=|X-125| under H0")
+K1 = quantile(T, 0.90)
+K1
+K2 = quantile(T, 0.99)
+K2
+```
+# 7.2.0.1 Exercise
+```{r}
+X = rbinom(1e5, size = 250, prob = 0.5)
+T = X
+K = quantile(T, 0.95)
+K
+```
+# 7.3.0.1 Exercise
+```{r}
+power = function(p){
+  pbinom(109, size = 250, prob = p)+pbinom(140, size = 250, prob = p, lower.tail = FALSE)
+}
+p_v = seq(0, 1, 0.01)
+power_v = power(p_v)
+plot(p_v, power_v, type = 'l')
+abline(h=0.05)
+```
+# 7.3.0.2 Exercise
+```{r}
+power(0.51)
+power(0.7)
+X = rbinom(1e5, size = 250, prob = 0.7)
+T = abs(X-125)
+power = mean(T > 15)
+power
+```
+# 7.3.0.3 Exercise
+```{r}
+power = function(p){
+  pbinom(109, size = 250, prob = p)+pbinom(140, size = 250, prob = p, lower.tail = FALSE)
+}
+power1 = function(p){
+  pbinom(138, size = 250, prob = p, lower.tail = FALSE)
+}
+p_v = seq(0, 1, 0.01)
+power_v = power(p_v)
+power1_v = power1(p_v)
+plot(p_v, power_v, type = 'l', ylim = c(0, 1))
+abline(h=0.05)
+lines(p_v, power1_v, col = 'red')
+```
+# 7.3.0.4 Exercise
+## a.
+```{r}
+ptype1 = dbinom(0, size = 10, prob = 0.5) + dbinom(10, size = 10, prob = 0.5)
+ptype1
+```
+## b.
+```{r}
+alpha = ptype1
+alpha
+```
+## c.
+```{r}
+ptype2 = 1 - dbinom(0, size = 10, prob = 0.3) - dbinom(10, size = 10, prob = 0.3)
+ptype2
+```
+## d.
+```{r}
+power1 = dbinom(0, size = 10, prob = 0.3) + dbinom(10, size = 10, prob = 0.3)
+power1
+```
+## e.
+```{r}
+power = function(p){
+  dbinom(0, size = 10, prob = p) + dbinom(10, size = 10, prob = p)
+}
+p_v = seq(0,1,0.01)
+power_v = power(p_v)
+plot(p_v, power_v, type = 'l')
+```
+# 7.3.0.5 Exercise
+## a.
+```{r}
+X = rbinom(1e5, size = 10, prob = 0.5)
+ptype1 = mean((X == 0) | (X == 10))
+ptype1
+```
+## b.
+```{r}
+alpha = ptype1
+alpha
+```
+## c.
+```{r}
+X = rbinom(1e5, size = 10, prob = 0.3)
+ptype2 = 1 - mean((X == 0) | (X == 10))
+ptype2
+```
+## d.
+```{r}
+power1 = mean((X == 0) | (X == 10))
+power1
+```
+# 7.3.0.6 Exercise
+## c.
+```{r}
+X = rbinom(1e5, size = 102, prob = 1/6)
+T = abs(X - 17)
+cv = quantile(T, 0.95)
+cv
+```
+## e.
+```{r}
+power = function(p){
+  pbinom(17-cv-1, size = 102, prob = p) + pbinom(17+cv, size = 102, prob = p, lower.tail = FALSE)
+}
+power(1/5)
+```
+## f.
+```{r}
+p_v = seq(0, 1, 0.01)
+power_v = power(p_v)
+plot(p_v, power_v, type = 'l')
+abline(h=0.05)
+abline(v=1/6)
+abline(v=1/5)
+```
+# 7.3.0.7 Exercise
+## c.
+```{r}
+X = rbinom(1e5, size = 102, prob = 1/6)
+T = abs(X - 17)
+cv = quantile(T, 0.9)
+cv
+```
+## e.
+```{r}
+power = function(p){
+  pbinom(17-cv-1, size = 102, prob = p) + pbinom(17+cv, size = 102, prob = p, lower.tail = FALSE)
+}
+power(1/5)
+```
+# 7.3.0.8 Exercise
+```{r}
+X = rbinom(1e5, size = 204, prob = 1/6)
+T = abs(X - 204/6)
+cv = quantile(T, 0.95)
+cv
+power = function(p){
+  pbinom(204/6-cv-1, size = 204, prob = p) + pbinom(204/6+cv, size = 204, prob = p, lower.tail = FALSE)
+}
+power(1/5)
+```
+# 7.3.0.9 Exercise
+## c.
+```{r}
+X = rbinom(1e5, size = 100, prob = 0.01)
+T = abs(X - 100*0.01)
+cv = quantile(T, 0.95)
+power = function(p){
+  pbinom(100*0.01-cv-1, size = 100, prob = p) + pbinom(100*0.01+cv, size = 100, prob = p, lower.tail = FALSE)
+}
+p_v = seq(0, 1, 0.01)
+power_v = power(p_v)
+plot(p_v, power_v, type = 'l')
+```
+# 7.4.0.3 Exercise
+```{r}
+X = 140
+Z = abs((X - 125) / 62.5**0.5)
+cv = qnorm(0.975, mean = 0, sd = 1)
+cv = qnorm(0.95, mean = 0, sd = 1)
+```

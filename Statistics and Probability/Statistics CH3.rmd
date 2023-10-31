@@ -1,0 +1,105 @@
+---
+title: "Statistics CH3"
+author: "Xiang Li"
+date: "2023/10/21"
+output: pdf_document
+---
+# 3.1.0.1 Exercise
+```{r}
+X = rpois(1e5, lambda = 2)
+mean(X)
+```
+# 3.2.0.3 Exercise
+```{r}
+set.seed(123)
+x = rnorm(n=50,mean=10,sd=5)
+x_bar = mean(x)
+sigma_hat = var(x) ** 0.5
+k = 10000
+B = numeric(k)
+for (i in 1:k){
+  x_boot = rnorm(n=50,mean=x_bar,sd=sigma_hat)
+  x_boot_bar = mean(x_boot)
+  B[i] = x_boot_bar - x_bar
+}
+mean(B)
+mean(B**2)
+var(B)
+sd(B)
+```
+# 3.2.0.4 Exercise
+```{r}
+set.seed(123)
+x = rnorm(n=50,mean=10,sd=5)
+x_bar = mean(x)
+sigma_hat = var(x) ** 0.5
+k = 10000
+B = numeric(k)
+for (i in 1:k){
+  x_boot = rnorm(n=50,mean=x_bar,sd=sigma_hat)
+  sigma_hat_boot = var(x_boot) ** 0.5
+  B[i] = sigma_hat_boot - sigma_hat
+}
+mean(B)
+mean(B**2)
+var(B)
+sd(B)
+```
+# 3.2.0.5 Exercise
+```{r}
+set.seed(123)
+X = rnorm(n=50,mean=10,sd=5)
+X_bar = mean(X)
+sigma_hat = sd(X)*(49/50) ** 0.5
+coe_hat = sigma_hat/X_bar
+k = 1e4
+B = numeric(k)
+for (i in 1:k) {
+  X_boot = rnorm(n=50,mean=X_bar,sd=sigma_hat)
+  coe_hat_boot = sd(X_boot)*(49/50) ** 0.5/mean(X_boot)
+  B[i] = coe_hat_boot - coe_hat
+}
+mean(B)
+mean(B**2)
+var(B)
+sd(B)
+```
+# 3.2.0.6 Exercise
+```{r}
+# formula
+size = 57
+p_hat = 32/57
+bias = 0
+se = (p_hat*(1-p_hat)/size) ** 0.5
+mse = p_hat*(1-p_hat)/size
+# bootstrap
+k = 1e4
+B = numeric(k)
+for (i in 1:k){
+  X_boot = rbinom(1, size=size, prob=p_hat)
+  p_hat_boot = X_boot/size
+  B[i] = p_hat_boot - p_hat
+}
+c(bias, mean(B))
+c(mse, mean(B**2))
+c(se**2, var(B))
+c(se, sd(B))
+```
+# 3.2.0.7 Exercise
+```{r}
+set.seed(123)
+x = rpois(20,2)
+lambda_hat = mean(x)
+p0 = exp(-1*lambda_hat)
+k = 1e4
+B = numeric(k)
+for (i in 1:k) {
+  x_boot = rpois(20,lambda_hat)
+  lambda_boot = mean(x_boot)
+  p0_boot = exp(-1*lambda_boot)
+  B[i] = p0_boot - p0
+}
+mean(B)
+mean(B**2)
+sd(B)
+```
