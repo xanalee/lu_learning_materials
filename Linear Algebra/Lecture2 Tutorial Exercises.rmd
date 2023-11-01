@@ -11,3 +11,48 @@ B = matrix(c(21, 18, 20, 14, 10, 13), nrow = 2, ncol = 3)
 A %*% B # (3, 2) means the total cost of product hoods by Plan2
 which.min(colSums(A %*% B)) # Plan3 is the most economical
 ```
+```{r}
+library(matlib)
+```
+# Exercise 1.2.5 a
+```{r}
+A = matrix(c(1, 1, 2, 3, -1, 1, -1, 3, 4), nrow = 3, ncol = 3)
+b = c(8, 0, 4)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.5 b
+```{r}
+A = matrix(c(-2, 3, 3, 3, -4, 1, -5, 7, 2), nrow = 3, ncol = 3)
+b = c(-9, 5, -14)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.5 d
+```{r}
+A = matrix(c(1, 2, -1, 2, 5, -3, 1, 4, -3), nrow = 3, ncol = 3)
+b = c(2, 1, 3)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.5 f
+```{r}
+A = matrix(c(3, -2, 1, 1, -1, 3, -1, 1, 1), nrow = 3, ncol = 3)
+b = c(-2, 5, -1)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.7 a
+```{r}
+A = matrix(c(3, 8, -3, -14, 2, 3, -1, -2, 1, -2, 1, 10, 1, 5, -2, -12), nrow = 4, ncol = 4)
+b = c(2, 1, 0, 1)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.7 b
+```{r}
+A = matrix(c(1, -1, 1, -1, -1, 1, 1, 1, 1, 1, -1, 1, 1, 1, 1, 1), nrow = 4, ncol = 4)
+b = c(0, 0, 0, 0)
+gaussianElimination(A, b)
+```
+# Exercise 1.2.7 c
+```{r}
+A = matrix(c(1, -1, 1, -2, -1, 1, 1, 1, -1, 2, 3, -1, 1, -1, 2, 1), nrow = 4, ncol = 4)
+b = c(1, -1, 2, 1)
+gaussianElimination(A, b)
+```
