@@ -1,0 +1,210 @@
+---
+title: "week6 exercise"
+author: "Xiang Li"
+date: "2023/11/1"
+output: pdf_document
+---
+# Exercise 1
+## 1
+```{r}
+f1 = function (df){
+  num_df = df[, sapply(df, is.numeric)]
+  summary_df = data.frame(colname = colnames(num_df), mean = unname(sapply(num_df, mean)))
+  result = list(dimensions = dim(df), names = colnames(df), summary = summary_df)
+  return(result)
+}
+```
+## 2
+```{r}
+data(iris)
+iris_df = as.data.frame(iris)
+f1_result = f1(iris_df)
+f1_result
+```
+## 3
+```{r}
+print(f1_result[[3]])
+```
+## 4
+```{r}
+print(f1_result[[2]][1])
+```
+# Exercise 2
+```{r}
+library(brolgar)
+data(heights)
+heights_df = as.data.frame(heights)
+```
+## 1
+```{r}
+height_scatter = function(country_name){
+  coun_heights_df = heights_df[heights_df$country == country_name, ]
+  plot(coun_heights_df$year, coun_heights_df$height_cm, type = 'p', xlab = 'year', ylab = 'height_cm')
+}
+height_scatter('China')
+```
+
+## 2
+```{r}
+height_line = function(country_name){
+  coun_heights_df = heights_df[heights_df$country == country_name, ]
+  plot(coun_heights_df$year, coun_heights_df$height_cm, type = 'l', xlab = 'year', ylab = 'height_cm')
+}
+height_line('China')
+```
+
+## 3
+```{r}
+height_scatter = function(country_name, shape = '.', col = 'blue'){
+  coun_heights_df = heights_df[heights_df$country == country_name, ]
+  plot(coun_heights_df$year, coun_heights_df$height_cm, type = 'p', xlab = 'year', ylab = 'height_cm', col = col, pch = shape)
+}
+height_scatter('China', shape = '+', col = 'red')
+```
+
+## 4
+```{r}
+coun_v = c('Argentina', 'Brazil', 'Honduras', 'Nicaragua', 'Panama', 'Sri Lanka', 'Vietnam')
+n = length(coun_v)
+coun_heights_df = heights_df[(heights_df$country %in% coun_v) & (heights_df$year == 1990), ]
+coun_heights_df = coun_heights_df[order(coun_heights_df$height_cm, decreasing = TRUE), ]
+par(mar=c(3,5,3,2))
+barplot(coun_heights_df$height_cm, names.arg = coun_heights_df$country, horiz = TRUE, xlab = 'height_cm', ylab = '', xlim = c(0, 200), col = rainbow(n), las = 1, mar = c(4, 7, 2, 4))
+```
+
+## 5
+```{r}
+heights1950_df = heights_df[(heights_df$continent == 'Asia') & (heights_df$year == 1950), ]
+heights1990_df = heights_df[(heights_df$continent == 'Asia') & (heights_df$year == 1990), ]
+hist(heights1950_df$height_cm, breaks = 10, xlab = 'height_cm', main = 'Histogram of Height in 1950 of Asia')
+plot(density(heights1950_df$height_cm), main = 'Density of Height in 1950 of Asia')
+polygon(density(heights1950_df$height_cm), col = 'skyblue')
+hist(heights1990_df$height_cm, breaks = 10, xlab = 'height_cm', main = 'Histogram of Height in 1990 of Asia')
+plot(density(heights1990_df$height_cm), main = 'Density of Height in 1990 of Asia')
+polygon(density(heights1990_df$height_cm), col = 'skyblue')
+```
+
+# Exercise 3
+```{r}
+data_df = read.csv('data/data.csv', skip = 4)
+```
+## 1
+```{r}
+data1990_df = data_df[order(data_df$X1990, decreasing = TRUE), ]
+notCountry = c("World", "IDA & IBRD total", "Low & middle income", "Middle income", "IBRD only", "Early-demographic dividend", "Lower middle income", "Upper middle income", "Late-demographic dividend",
+"East Asia & Pacific", "East Asia & Pacific (excluding high income)", "East Asia & Pacific (IDA & IBRD countries)", "South Asia",
+                "South Asia (IDA & IBRD)", "OECD members", "High income",
+                "Post-demographic dividend", "Europe & Central Asia", "IDA total",
+                "IDA only", "Sub-Saharan Africa",
+                "Sub-Saharan Africa (IDA & IBRD countries)",
+                "Sub-Saharan Africa (excluding high income)",
+                "Least developed countries: UN classification",
+                "Latin America & Caribbean", "Fragile and conflict affected situations",
+                "Europe & Central Asia (IDA & IBRD countries)",
+                "Latin America & the Caribbean (IDA & IBRD countries)", "European Union",
+                "Pre-demographic dividend",
+                "Latin America & Caribbean (excluding high income)",
+                "Europe & Central Asia (excluding high income)",
+                "Heavily indebted poor countries (HIPC)", "Euro area",
+                "Africa Eastern and Southern", "Low income", "IDA blend", "North America",
+                "Middle East & North Africa",
+                "Middle East & North Africa (excluding high income)",
+                "Middle East & North Africa (IDA & IBRD countries)", "Arab World",
+                "Africa Western and Central", "Central Europe and the Baltics")
+top20 = head(data1990_df$Country.Name, n = 20)
+top20
+```
+## 2
+```{r}
+top20_df = data_df[data_df$Country.Name %in% top20, ]
+plot(top20_df$X1960, top20_df$X1970, type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(5e8, 4e9), ylim = c(5e8, 4e9))
+```
+
+## 3
+```{r}
+plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(8.6, 9.6), ylim = c(8.6, 9.6))
+```
+
+## 4
+```{r}
+plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(8.6, 9.6), ylim = c(8.6, 9.6))
+lines(x = seq(8.6, 9.6, 0.1), y = seq(8.6, 9.6, 0.1), col = 'red', type = 'l')
+```
+All of top20 countries experienced a population growth.
+
+## 5
+```{r}
+par(mfrow = c(2, 2))
+plot(log(top20_df$X1960, base = 10), log(top20_df$X1980, base = 10), type ='p', xlab = "1960's height", ylab = "1980's height")
+lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
+plot(log(top20_df$X1960, base = 10), log(top20_df$X2000, base = 10), type ='p', xlab = "1960's height", ylab = "2000's height")
+lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
+plot(log(top20_df$X1960, base = 10), log(top20_df$X2010, base = 10), type ='p', xlab = "1960's height", ylab = "2010's height")
+lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
+plot(log(top20_df$X1960, base = 10), log(top20_df$X2020, base = 10), type ='p', xlab = "1960's height", ylab = "2020's height")
+lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
+```
+
+# Exercise 4
+## 1
+```{r}
+f = function (x){
+  if (x <= -3){
+    result = -5
+  }
+  else if((x > -3) & (x < 1)){
+    result = log(x+5)
+  }
+  else if (x == 1){
+    result = 2
+  }
+  else if ((x > 1) & (x <= 14)){
+    result = (x+3)**0.5
+  }
+  else {
+    result = log(x)
+  }
+  return(result)
+}
+x = seq(-5, 17, 0.1)
+plot(x, sapply(x, f), type = 'l')
+```
+
+## 2
+```{r}
+plot(x, sapply(x, f), type = 'l', col = 'blue', lwd = 2)
+```
+
+## 3
+```{r}
+plot(x, sapply(x, f), type = 'l', col = 'blue', lwd = 2, ylab = expression(f[X](x)))
+```
+
+# Exercise 5
+## 1
+```{r}
+splitiris = split(iris, iris$Species)
+```
+## 2
+```{r}
+n = length(splitiris)
+for (i in 1:n){
+  i_df = splitiris[[i]]
+  plot(x = i_df$Sepal.Length, y = i_df$Sepal.Width, xlab = 'Sepal Length', ylab = 'Sepal Widt', main = paste('Scatter Plot of ', names(splitiris)[i]))
+}
+```
+
+## 3
+```{r}
+n = length(splitiris)
+for (i in 1:n){
+  i_df = splitiris[[i]]
+  plot(x = i_df$Sepal.Length, y = i_df$Sepal.Width, xlab = 'Sepal Length', ylab = 'Sepal Widt', main = paste('Scatter Plot of ', names(splitiris)[i]))
+  points(x = mean(i_df$Sepal.Length), y = mean(i_df$Sepal.Width), pch = 24,col="black")
+}
+```
+
+## 4
+```{r}
+splitiris1 = splitiris[-which(names(splitiris) == 'setosa')]
+```

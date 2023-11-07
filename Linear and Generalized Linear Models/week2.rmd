@@ -1,0 +1,89 @@
+---
+title: "week2"
+author: "Xiang Li"
+date: "2023/11/6"
+output: pdf_document
+---
+```{r}
+# taste of three types of tomato: round, beef, or cherry
+taste <- c(25.44462, 28.09772, 46.46490, 36.95795, 24.83477, 28.46805,
+           48.14579, 31.77559, 53.42217, 70.86571, 57.07008, 38.08433)
+
+#create a qualitative variable indicating tomato type
+tomtype <- as.factor(c(rep("round",4), rep("beef",4), rep("cherry",4)))
+
+# one-way ANOVA model
+Tastemodel <- lm(taste ~ tomtype)
+a = anova(Tastemodel)
+a
+```
+```{r}
+# this is what happens when you do not introduce
+# type of tomato as a factor
+# type of tomato: 1 = round, 2 = beef, 3 = cherry tomato)
+type <- c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3 ,3)
+b = WrongModel <- lm(taste ~ type)
+summary(WrongModel)
+```
+```{r}
+# more output with the one-way anova model
+a = summary(Tastemodel)
+a
+```
+```{r}
+library(multcomp)
+```
+```{r}
+# All three pairwise comparisons with Tukeys method
+Tukey <- glht(Tastemodel, linfct=mcp(tomtype="Tukey"))
+summary(Tukey)
+```
+```{r}
+tomtype2 <- relevel(tomtype, ref="cherry")
+Tastemodel2 <- lm(taste ~ tomtype2)
+a = summary(Tastemodel)
+b = summary(Tastemodel2)
+a
+b
+```
+```{r}
+# response is yield of fruit y,
+# comparing four pesticides or three varieties f fruit trees
+# eight trees of each variety randomly assigned to the four pesticides
+# two trees per variety, per pesticide
+y <- c(49, 39, 55, 41, 66, 68, 50, 55, 67, 58, 85, 92, 43, 38, 53, 42, 69, 62, 53, 48, 85, 73, 85, 99)
+pesticide <- factor(c(1,  1,  1,  1,  1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4))
+variety <- factor(c(1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3, 1, 1, 2, 2, 3, 3))
+
+# printing the data
+print(cbind(y, variety, pesticide))
+
+#profile plot
+interaction.plot(pesticide, variety, y)
+```
+```{r}
+interaction.plot(variety, pesticide, y)
+```
+```{r}
+# a two-way analysis of variance with interaction
+a = twowayint <- lm(y ~ variety + pesticide + variety:pesticide)
+a
+b = anova(twowayint)
+b
+c = summary(twowayint)
+c
+```
+```{r}
+d = cbind(y, variety, pesticide)
+```
+```{r}
+library(emmeans)
+#comparing pesticides averaged over varieties
+marginal <- emmeans(twowayint, ~ pesticide)
+# Fisher's LSD method
+pairs(marginal, adjust="None")
+```
+```{r}
+# Tukey's method
+pairs(marginal, adjust="Tukey")
+```

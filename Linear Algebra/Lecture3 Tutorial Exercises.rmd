@@ -1,0 +1,47 @@
+---
+title: "Lecture3 Tutorial Exercises"
+author: "Xiang Li"
+date: "2023/11/7"
+output: pdf_document
+---
+```{r}
+library(matlib)
+```
+# Exercise 2.4.2
+## c
+```{r}
+A = matrix(c(1, 0, -1, 3, 2, 0, -1, -1, 0), nrow = 3, byrow = TRUE)
+I3 = diag(3)
+gaussianElimination(A, I3)
+```
+## d
+```{r}
+A = matrix(c(1, -1, 2, -5, 7, -11, -2, 3, -5), nrow = 3, byrow = TRUE)
+I3 = diag(3)
+gaussianElimination(A, I3)
+```
+# Exercise 3.1.1
+## f
+```{r}
+A = matrix(c(2, 0, -3, 1, 2, 5, 0, 3, 0), nrow = 3, byrow = TRUE)
+det(A)
+```
+## g
+```{r}
+A = matrix(c(1, 2, 3, 4, 5, 6, 7, 8, 9), nrow = 3, byrow = TRUE)
+det(A)
+b = c(0, 0, 0)
+gaussianElimination(A, b)
+```
+## k
+```{r}
+A = matrix(c(0, 1, -1, 0, 3, 0, 0, 2, 0, 1, 2, 1, 5, 0, 0, 7), nrow = 4, byrow = TRUE)
+det(A)
+```
+## k
+```{r}
+A = matrix(c(1, 0, 3, 1, 2, 2, 6, 0, -1, 0 ,-3, 1, 4, 1, 12, 0), nrow = 4, byrow = TRUE)
+det(A)
+b = c(0, 0, 0, 0)
+gaussianElimination(A, b)
+```

@@ -21,6 +21,7 @@ ma(x, 2, 3)
 ```
 ## 2
 See the solution of question 1.
+
 ## 3
 ```{r}
 for (t in 1:length(x)) {
@@ -146,6 +147,7 @@ barplot(mean_shares~party, data = sorted_mean_df, col=1:nrow(sorted_mean_df), ma
 ```{r}
 pie(sorted_mean_df$mean_shares, labels = sorted_mean_df$party, col = 1:5, main = title)
 ```
+
 ## 8
 ```{r}
 library(ggplot2)
@@ -154,6 +156,7 @@ x = round(sorted_mean_df$mean_shares/0.01)
 names(x) = sorted_mean_df$party
 waffle(x, rows = 10, xlab = '1 square = 0.01 shares', title = title)
 ```
+
 ## 9
 ```{r}
 pdf(file="plot/week5_Exercise5_6.pdf")
