@@ -87,62 +87,66 @@ polygon(density(heights1990_df$height_cm), col = 'skyblue')
 # Exercise 3
 ```{r}
 data_df = read.csv('data/data.csv', skip = 4)
+notCountry = c("World", "IDA & IBRD total", "Low & middle income", "Middle income", "IBRD only",
+               "Early-demographic dividend", "Lower middle income", "Upper middle income", "Late-demographic dividend", "East Asia & Pacific",
+               "East Asia & Pacific (excluding high income)",
+               "East Asia & Pacific (IDA & IBRD countries)", "South Asia",
+               "South Asia (IDA & IBRD)", "OECD members", "High income",
+               "Post-demographic dividend", "Europe & Central Asia", "IDA total", "IDA only",
+               "Sub-Saharan Africa", "Sub-Saharan Africa (IDA & IBRD countries)",
+               "Sub-Saharan Africa (excluding high income)",
+               "Least developed countries: UN classification", "Latin America & Caribbean",
+               "Fragile and conflict affected situations",
+               "Europe & Central Asia (IDA & IBRD countries)",
+               "Latin America & the Caribbean (IDA & IBRD countries)", "European Union",
+               "Pre-demographic dividend", "Latin America & Caribbean (excluding high income)",
+               "Europe & Central Asia (excluding high income)",
+               "Heavily indebted poor countries (HIPC)", "Euro area", "Africa Eastern and Southern",
+               "Low income", "IDA blend", "North America", "Middle East & North Africa",
+               "Middle East & North Africa (excluding high income)",
+               "Middle East & North Africa (IDA & IBRD countries)", "Arab World",
+               "Africa Western and Central", "Central Europe and the Baltics")
+data_df1 = data_df[! data_df$Country.Name %in% notCountry, ]
 ```
 ## 1
 ```{r}
-data1990_df = data_df[order(data_df$X1990, decreasing = TRUE), ]
-notCountry = c("World", "IDA & IBRD total", "Low & middle income", "Middle income", "IBRD only", "Early-demographic dividend", "Lower middle income", "Upper middle income", "Late-demographic dividend",
-"East Asia & Pacific", "East Asia & Pacific (excluding high income)", "East Asia & Pacific (IDA & IBRD countries)", "South Asia",
-                "South Asia (IDA & IBRD)", "OECD members", "High income",
-                "Post-demographic dividend", "Europe & Central Asia", "IDA total",
-                "IDA only", "Sub-Saharan Africa",
-                "Sub-Saharan Africa (IDA & IBRD countries)",
-                "Sub-Saharan Africa (excluding high income)",
-                "Least developed countries: UN classification",
-                "Latin America & Caribbean", "Fragile and conflict affected situations",
-                "Europe & Central Asia (IDA & IBRD countries)",
-                "Latin America & the Caribbean (IDA & IBRD countries)", "European Union",
-                "Pre-demographic dividend",
-                "Latin America & Caribbean (excluding high income)",
-                "Europe & Central Asia (excluding high income)",
-                "Heavily indebted poor countries (HIPC)", "Euro area",
-                "Africa Eastern and Southern", "Low income", "IDA blend", "North America",
-                "Middle East & North Africa",
-                "Middle East & North Africa (excluding high income)",
-                "Middle East & North Africa (IDA & IBRD countries)", "Arab World",
-                "Africa Western and Central", "Central Europe and the Baltics")
+data1990_df = data_df1[order(data_df1$X1990, decreasing = TRUE), ]
 top20 = head(data1990_df$Country.Name, n = 20)
 top20
 ```
 ## 2
 ```{r}
-top20_df = data_df[data_df$Country.Name %in% top20, ]
-plot(top20_df$X1960, top20_df$X1970, type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(5e8, 4e9), ylim = c(5e8, 4e9))
+top20_df = data_df1[data_df1$Country.Name %in% top20, ]
+min_ = min(top20_df[, c('X1960', 'X1970')])
+max_ = max(top20_df[, c('X1960', 'X1970')])
+plot(top20_df$X1960, top20_df$X1970, type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(min_, max_), ylim = c(min_, max_))
 ```
 
 ## 3
 ```{r}
-plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(8.6, 9.6), ylim = c(8.6, 9.6))
+log_min = log(min_, base = 10)
+log_max = log(max_, base = 10)
+plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(log_min, log_max), ylim = c(log_min, log_max))
 ```
 
 ## 4
 ```{r}
-plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(8.6, 9.6), ylim = c(8.6, 9.6))
-lines(x = seq(8.6, 9.6, 0.1), y = seq(8.6, 9.6, 0.1), col = 'red', type = 'l')
+plot(log(top20_df$X1960, base = 10), log(top20_df$X1970, base = 10), type ='p', xlab = "1960's height", ylab = "1970's height", xlim = c(log_min, log_max), ylim = c(log_min, log_max))
+s = seq(log_min, log_max, 0.1)
+lines(x = s, y = s, col = 'red', type = 'l')
 ```
 All of top20 countries experienced a population growth.
 
 ## 5
 ```{r}
 par(mfrow = c(2, 2))
-plot(log(top20_df$X1960, base = 10), log(top20_df$X1980, base = 10), type ='p', xlab = "1960's height", ylab = "1980's height")
-lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
-plot(log(top20_df$X1960, base = 10), log(top20_df$X2000, base = 10), type ='p', xlab = "1960's height", ylab = "2000's height")
-lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
-plot(log(top20_df$X1960, base = 10), log(top20_df$X2010, base = 10), type ='p', xlab = "1960's height", ylab = "2010's height")
-lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
-plot(log(top20_df$X1960, base = 10), log(top20_df$X2020, base = 10), type ='p', xlab = "1960's height", ylab = "2020's height")
-lines(x = seq(8, 10, 0.1), y = seq(8, 10, 0.1), col = 'red', type = 'l')
+for (c in c('X1980', 'X2000', 'X2010', 'X2020')){
+  c_log_min = log(min(top20_df[, c('X1960', c)]), base = 10)
+  c_log_max = log(max(top20_df[, c('X1960', c)]), base = 10)
+  plot(log(top20_df$X1960, base = 10), log(top20_df[, c], base = 10), type ='p', xlab = "1960's height", ylab = paste0(sub('X', '', c), "'s height"), xlim = c(c_log_min, c_log_max), ylim = c(c_log_min, c_log_max))
+  s = seq(c_log_min, c_log_max, 0.1)
+  lines(x = s, y = s, col = 'red', type = 'l')
+}
 ```
 
 # Exercise 4
