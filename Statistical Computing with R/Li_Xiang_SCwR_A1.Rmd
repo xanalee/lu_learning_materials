@@ -1,5 +1,5 @@
 ---
-title: "Li_Xiang_SCwR_A1"
+title: "Assignment 1"
 author: "Xiang Li"
 date: "2023-10-10"
 output: pdf_document
@@ -73,25 +73,26 @@ result_ls
 # Exercise 2
 ```{r}
 mybeerbottlefunction = function(num) {
-  if ((num <= 0) | (length(num) > 1) | is.integer(num)) {
+  if ((num <= 0) | (length(num) > 1) | num %% 1 != 0 ) {
     stop('The input is not available!!!!')
-  } else if (num == 1) {
-    lyric = paste('1 bottle of beer on the wall, 1 bottle of beer. Take one ', 
-                  'down, pass it around, no more bottles of beer on the wall.', 
-                  sep = '')
-    return(lyric)
   } else {
-     lyric = paste(num, ' Bottles of Beers Song\n\n\n', sep = '')
-  loop_v = rev(2:num)
-  for (n in loop_v) {
-    lyric = paste(lyric, n, ' bottles of beer on the wall, ', n, 
-    ' bottles of beer. Take one down, pass it around, ', n-1, 
-    ' bottles of beer on the wall...\n\n\n', sep = '')
-  }
-  lyric = paste(lyric, '1 bottle of beer on the wall, 1 bottle of beer. ', 
-                'Take one down, pass it around, no more bottles of beer on the ', 
-                'wall.', sep = '')
-  return(lyric)
+    lyric = paste0(num, ' Bottles of Beers Song\n\n\n')
+    loop_v = rev(1:num)
+    for (n in loop_v) {
+      if (n > 2){
+        lyric = paste0(lyric, n, ' bottles of beer on the wall, ', n,
+                      ' bottles of beer. Take one down, pass it around, ', n-1,
+                       ' bottles of beer on the wall...\n\n\n')
+      } else if (n == 1){
+        lyric = paste0(lyric, '1 bottle of beer on the wall, 1 bottle of beer. ',
+                       'Take one down, pass it around, no more bottles of beer on the ',
+                       'wall.')
+      } else if (n == 2){
+        lyric = paste0(lyric, '2 bottles of beer on the wall, 2 bottles of beer. ',
+                       'Take one down, pass it around, 1 bottle of beer on the wall...\n\n\n')
+      }
+    }
+    return(lyric)
   }
 }
 # cat(mybeerbottlefunction(5))
