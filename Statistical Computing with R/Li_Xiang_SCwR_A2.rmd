@@ -1,0 +1,130 @@
+---
+title: "Assignment 2"
+author: "Xiang Li"
+date: "2023/11/8"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 55), tidy = TRUE)
+```
+# Exercise 1
+## 1
+```{r}
+raw_df = read.csv('data/Airbnb_Ragusa.csv')
+```
+## 2
+```{r}
+valid_df = raw_df[, c('neighbourhood_cleansed', 'latitude', 'longitude', 'price')]
+head(valid_df, 5)
+```
+## 3
+```{r}
+valid_df$price = gsub('[$]', '', valid_df$price)
+valid_df$price = gsub('[,]', '', valid_df$price)
+valid_df$price = as.numeric(valid_df$price)
+head(valid_df, 5)
+```
+## 4
+```{r}
+ave_price_df = aggregate(valid_df[, 'price', drop = FALSE], by = list(neighbourhood_cleansed=valid_df$neighbourhood_cleansed), mean)
+ave_price_df
+```
+## 5
+```{r}
+coloursvector = rainbow(12)
+par(mar = c(5, 10, 4, 2))
+barplot(height = ave_price_df$price, names.arg = ave_price_df$neighbourhood_cleansed, horiz = TRUE, col = coloursvector, main = 'Average Price per Neighbourhood', xlim = c(0, max(ave_price_df$price)), xlab = 'average price', ylab = '', las = 1)
+```
+
+## 6
+```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
+ave_price_df$color = coloursvector
+valid_df = merge(valid_df, ave_price_df[, c('neighbourhood_cleansed', 'color')], by = 'neighbourhood_cleansed', all = TRUE)
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
+```
+
+## 7
+```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', mar = c(5, 4, 6, 4))
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
+```
+
+## 9
+Yes, the two maps are similar.
+
+## 10
+```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
+points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
+```
+
+## 11
+```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
+points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
+legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'black')
+```
+
+## 12
+```{r}
+jpeg(file="plot/Assignment2_Exercise1_12.jpg", width = 9, height = 8, units = 'in', res = 300, quality = 100)
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
+points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
+legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'black')
+dev.off()
+```
+# Exercise 2
+## Task 1
+```{r}
+stock_price_df = read.csv('data/AAPL_complete.csv')
+stock_price_df$Open = as.numeric(stock_price_df$Open)
+stock_price_df$Date = as.Date(stock_price_df$Date, '%Y-%m-%d')
+stock_price_df = stock_price_df[order(stock_price_df$Date), ]
+head(stock_price_df, 5)
+```
+## Task 2
+```{r}
+simulate_investment = function (start_date, end_date, investment_USD){
+  if (! is.character(start_date) | ! is.character(end_date) | ! is.numeric(investment_USD)){
+    warning("The input is not available!!!")
+  }
+  start_date_d = as.Date(start_date, '%Y-%m-%d')
+  end_date_d = as.Date(end_date, '%Y-%m-%d')
+  if (is.na(start_date_d) | is.na(end_date_d)){
+    warning("The dates entered do not exit or are not correctly formatted!!!")
+  }
+  min_date = min(stock_price_df$Date)
+  max_date = max(stock_price_df$Date)
+  if (start_date_d < min_date | end_date_d > max_date | start_date_d > end_date_d){
+    warning("The dates entered exceed the limit or are in reverse order!!!")
+  }
+  hold_price_df = stock_price_df[(stock_price_df$Date >= start_date_d) & (stock_price_df$Date <= end_date_d), ]
+  buy_price = hold_price_df$Open[1]
+  stock = floor(investment_USD/buy_price)
+  cash = investment_USD - buy_price * stock
+  hold_price_df$Value = hold_price_df$Open * stock + cash
+  hold_price_df$Profit = round(hold_price_df$Value - investment_USD, 2)
+  result_df = hold_price_df[, c('Date', 'Value', 'Profit')]
+  return(result_df)
+}
+```
+## Task 3
+```{r}
+simulate_investment('2011-10-01', '2011-10-11', 10000)
+```
+## Task 4
+```{r}
+df_summary = simulate_investment('2011-10-01', '2016-10-01', 5000)
+plot(df_summary$Date, df_summary$Value, type = 'l', xlab = 'Date', ylab = 'Value', main = 'Value From 2011-10-01 To 2016-10-01', col = 'lightblue')
+abline(h=5000, col = 'red')
+```
+The Value takes the highest value in April 2015, so it would be best to sell the stock in April 2015.
+
+## Task 5
+```{r}
+ind = which.max(df_summary$Value)
+list(Date=df_summary$Date[ind], Value=df_summary$Value[ind])
+```
