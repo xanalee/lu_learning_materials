@@ -1,0 +1,32 @@
+---
+title: "Lecture4 Tutorial Exercises"
+author: "Xiang Li"
+date: "2023/11/11"
+output: pdf_document
+---
+```{r}
+library(matlib)
+solve_system = function (vec_A, vec_b, row){
+  A = matrix(vec_A, nrow = row, byrow = TRUE)
+  b = matrix(vec_b, nrow = row, byrow = TRUE)
+  result = gaussianElimination(A, b)
+  return(result)
+}
+```
+# Exercise 1.3.5
+## a
+```{r}
+solve_system(vec_A = c(1, 2, -1, 2, 1, 1, 2, 2, 0, 1, 2, 4, -2, 3, 1), vec_b = replicate(3, 0), row = 3)
+```
+## b
+```{r}
+solve_system(vec_A = c(1, 2, -1, 1, 1, -1, -2, 2, 0, 1, -1, -2, 3, 1, 3), vec_b = replicate(3, 0), row = 3)
+```
+## c
+```{r}
+solve_system(vec_A = c(1, 1, -1, 2, 1, 1, 2, -1, 1, 1, 2, 3, -1, 2, 1, 4, 5, -2, 5, 2), vec_b = replicate(4, 0), row = 4)
+```
+## d
+```{r}
+solve_system(vec_A = c(1, 1, -2, -2, 2, 2, 2, -4, -4, 1, 1, -1, 2, 4, 1, -2, -4, 8, 10, 1), vec_b = replicate(4, 0), row = 4)
+```
