@@ -1,0 +1,118 @@
+---
+title: "week4"
+author: "Xiang Li"
+date: "2023/11/20"
+output: pdf_document
+---
+```{r}
+## Packages (install and invoke)
+pkgs <- rownames(installed.packages())
+if(!"faraway" %in% pkgs) install.packages("faraway")
+if(!"car" %in% pkgs) install.packages("car")
+library(faraway)
+library(MASS)
+library(car)
+```
+# Exercise 3.
+## a.
+```{r}
+y <- Duncan$prestige
+X <- cbind(1,Duncan$income,Duncan$education)
+#Least squares coefficients:
+Xinv=solve(t(X)%*%X)
+b <- Xinv %*% t(X) %*% y
+```
+## b.
+```{r}
+#Least squares estimates using lm:
+lse <- lm(prestige ~ income + education, data=Duncan)
+summary(lse)
+coef(lse)
+```
+## d.
+```{r}
+X1star <- X[,2]-mean(X[,2])
+X2star <- X[,3]-mean(X[,3])
+Xstar <- cbind(X1star, X2star)
+ystar <- y-mean(y)
+(b1 <- (solve(t(Xstar) %*% Xstar)) %*% t(Xstar) %*% ystar)
+```
+## e.
+```{r}
+lse_new <- lm(ystar ~ X1star + X2star)
+summary(lse_new)
+coef(lse_new)
+```
+# Exercise 4.
+## a.
+```{r}
+(summary(lse)$sigma)^2 # summary provides the residual standard error.
+```
+## b.
+```{r}
+e <- y - X %*% b
+ete <- t(e) %*% e
+n <- nrow(X)
+k <- 2
+(S2e <- as.numeric(ete/(n-(k+1))))
+```
+## c.
+```{r}
+(Vb <- S2e * solve(t(X)%*% X))
+```
+## d.
+```{r}
+estar <- ystar - Xstar %*% b1
+(S2estar <- as.numeric((t(estar) %*% estar)/(n-(k+1)))) # at this moment this is a 1x1 matrix
+
+(Vb1 <- S2estar * solve(t(Xstar)%*% Xstar) )
+```
+## Exercise 5.
+```{r}
+nRep <- 100 # number of replicates
+betas <- rep(0, nRep)
+var_res <- rep(0, nRep)
+
+for (i in seq(1,nRep, by = 1)){
+  set.seed(i)
+  x <- runif(100) #Simulated predictor
+  y <- 2 + 5* x  + rnorm(100) # generated response, with true sigma^2 = 1
+  modSim <- lm(y ~ x) #Regression model
+  betas[i] <- coef(modSim)[2]
+  var_res[i] <- (summary(modSim)$sigma)^2
+}
+
+# Histogram
+hist(betas)
+mean(betas)
+
+mean(var_res)
+```
+# Exercise 6.
+## a.
+```{r}
+cars_data <- mtcars[,c("mpg","disp","hp","wt")]
+head(cars_data)
+
+model_cars <- lm(mpg~disp+hp+wt, data = cars_data)
+
+# Show the model.
+summary(model_cars)
+
+coef(model_cars)
+```
+## b.
+```{r}
+(X <- model.matrix(model_cars))
+y <- as.vector(cars_data$mpg)
+beta <- solve(t(X)%*%X)%*%(t(X)%*%y)
+```
+## c.
+```{r}
+e <- y - X %*% beta
+ete <- t(e) %*% e
+n <- nrow(X)
+k <- 2
+(S2e <- as.numeric(ete/(n-(k+1))))
+(Vb <- S2e * solve(t(X)%*% X))
+```
