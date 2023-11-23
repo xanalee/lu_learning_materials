@@ -1,0 +1,88 @@
+---
+title: "Lecture8 Tutorial Exercises"
+author: "Xiang Li"
+date: "2023/11/19"
+output: pdf_document
+---
+```{r}
+library(matlib)
+```
+# Exercise 8.1.4
+## a
+```{r}
+A = matrix(c(1, 0, 1, 1, 1, 1), nrow = 3, byrow = TRUE)
+x = c(-1, 2, 1)
+alpha_v = inv(t(A) %*% A) %*% t(A) %*% x
+alpha_v
+A %*% alpha_v
+```
+## b
+```{r}
+A = matrix(c(1, -1, -1, 0, 0, 1), nrow = 3, byrow = TRUE)
+x = c(2, 1, 0)
+alpha_v = inv(t(A) %*% A) %*% t(A) %*% x
+alpha_v
+A %*% alpha_v
+```
+## c
+```{r}
+A = matrix(c(1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0), nrow = 4, byrow = TRUE)
+x = c(2, 0, -1, 3)
+alpha_v = inv(t(A) %*% A) %*% t(A) %*% x
+alpha_v
+A %*% alpha_v
+```
+## d
+```{r}
+A = matrix(c(1, 1, 1, -1, 1, 1, 0, 0, 0, 1, 0, 1), nrow = 4, byrow = TRUE)
+x = c(2, 0, 3, 1)
+alpha_v = inv(t(A) %*% A) %*% t(A) %*% x
+alpha_v
+A %*% alpha_v
+```
+# Exercise5.6.2
+## a
+```{r}
+M = matrix(c(1, 1, 1, 3, 1, 4, 1, 6), nrow =4, byrow = TRUE)
+y = c(1, 2, 3, 4)
+t(M) %*% M
+t(M) %*% y
+gaussianElimination(t(M) %*% M, t(M) %*% y)
+```
+## b
+```{r}
+M = matrix(c(1, 2, 1, 4, 1, 7, 1, 8), nrow =4, byrow = TRUE)
+y = c(4, 3, 2, 1)
+t(M) %*% M
+t(M) %*% y
+gaussianElimination(t(M) %*% M, t(M) %*% y)
+```
+## c
+```{r}
+M = matrix(c(1, -1, 1, 0, 1, 1, 1, 2, 1, 3), nrow = 5, byrow = TRUE)
+y = c(-1, 1, 2, 4, 6)
+t(M) %*% M
+t(M) %*% y
+gaussianElimination(t(M) %*% M, t(M) %*% y)
+```
+## d
+```{r}
+M = matrix(c(1, -2, 1, -1, 1, 0, 1, 1, 1, 2), nrow = 5, byrow = TRUE)
+y = c(3, 1, 0, -2, -4)
+t(M) %*% M
+t(M) %*% y
+gaussianElimination(t(M) %*% M, t(M) %*% y)
+```
+# Exercise 5.6.9
+```{r}
+M = matrix(c(1, 50, 18, 10, 1, 40, 20, 16, 1, 35, 14, 10, 1, 40, 12, 12, 1, 30, 16, 14), nrow = 5, byrow = TRUE)
+y = c(28, 30, 21, 23, 23)
+t(M) %*% M
+t(M) %*% y
+gaussianElimination(t(M) %*% M, t(M) %*% y)
+```
+```{r}
+A = matrix(c(1/3, 2/3, 2/3, 2/3, 1/3, -2/3), nrow = 2, byrow = TRUE)
+b = c(0, 0)
+gaussianElimination(A, b)
+```

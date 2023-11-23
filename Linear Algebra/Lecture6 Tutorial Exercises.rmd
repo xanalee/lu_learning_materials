@@ -1,0 +1,63 @@
+---
+title: "Lecture6 Tutorial Exercises"
+author: "Xiang Li"
+date: "2023/11/16"
+output: pdf_document
+---
+# Exercise 3.3.8
+## a
+```{r}
+A = matrix(c(6, -5, 2 ,-1), nrow = 2, byrow = TRUE)
+P = matrix(c(1, 5, 1, 2), nrow = 2, byrow = TRUE)
+inv_P = inv(P)
+inv_P
+inv(P) %*% A %*% P
+```
+## b
+```{r}
+A = matrix(c(-7, -12, 6, -10), nrow = 2, byrow = TRUE)
+P = matrix(c(-3, 4, 2, -3), nrow = 2, byrow = TRUE)
+inv_P = inv(P)
+inv_P
+inv(P) %*% A %*% P
+```
+# Exercise 3.3.9
+## a
+```{r}
+A = matrix(c(1, 3, 0, 2), nrow = 2, byrow = TRUE)
+e_values = eigen(A)$values
+e_values
+n = length(e_values)
+nrow_ = nrow(A)
+b = replicate(nrow_, 0)
+for (i in 1:n){
+  C = e_values[i]*diag(nrow_)-A
+  i_vector = gaussianElimination(C, b)
+  print(i_vector)
+}
+```
+# Exercise 5.5.1
+## a
+```{r}
+A = matrix(c(1, 2, 2, 1), nrow = 2, byrow = TRUE)
+B = matrix(c(1, 1, -1, 1), nrow = 2, byrow =TRUE)
+c(det(A), det(B))
+```
+## b
+```{r}
+A = matrix(c(3, 1, 2, -1), nrow = 2, byrow = TRUE)
+B = matrix(c(1, 1, 2, 1), nrow = 2, byrow =TRUE)
+c(det(A), det(B))
+```
+## c
+```{r}
+A = matrix(c(2, 1, 1, -1), nrow = 2, byrow = TRUE)
+B = matrix(c(3, 0, 1, -1), nrow = 2, byrow =TRUE)
+c(det(A), det(B))
+```
+## d
+```{r}
+A = matrix(c(3, 1, -1, 2), nrow = 2, byrow = TRUE)
+B = matrix(c(2, -1, 3, 2), nrow = 2, byrow =TRUE)
+c(det(A), det(B))
+```
