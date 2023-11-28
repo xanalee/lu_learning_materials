@@ -40,13 +40,13 @@ barplot(height = ave_price_df$price, names.arg = ave_price_df$neighbourhood_clea
 ```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
 ave_price_df$color = coloursvector
 valid_df = merge(valid_df, ave_price_df[, c('neighbourhood_cleansed', 'color')], by = 'neighbourhood_cleansed', all = TRUE)
-plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', pch = 19)
 ```
 
 ## 7
 ```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
-plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', mar = c(5, 4, 6, 4))
-legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', pch = 19)
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 19, col = ave_price_df$color)
 ```
 
 ## 9
@@ -54,26 +54,26 @@ Yes, the two maps are similar.
 
 ## 10
 ```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
-plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
-legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
-points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.2), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.2), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', pch = 19)
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 19, col = ave_price_df$color)
+points(x = 14.7287, y = 36.9257, pch = 17, col = 'grey')
 ```
 
 ## 11
 ```{r, fig.height = 8, fig.width = 9, fig.align = "center"}
-plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
-legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
-points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
-legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'black')
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.2), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.2), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', pch = 19)
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 19, col = ave_price_df$color)
+points(x = 14.7287, y = 36.9257, pch = 17, col = 'grey')
+legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'grey')
 ```
 
 ## 12
 ```{r}
 jpeg(file="plot/Assignment2_Exercise1_12.jpg", width = 9, height = 8, units = 'in', res = 300, quality = 100)
-plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(36.5, max(valid_df$latitude)+0.1), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.1), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs')
-legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 'o', col = ave_price_df$color)
-points(x = 14.4346, y = 36.5532, pch = 17, col = 'black')
-legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'black')
+plot(valid_df$longitude, valid_df$latitude, type = 'p', col = valid_df$color, ylim = c(min(valid_df$latitude), max(valid_df$latitude)+0.2), xlim = c(min(valid_df$longitude), max(valid_df$longitude)+0.2), ylab = 'latitude', xlab = 'longitude', main = 'Position Distribution of Airbnbs', pch = 19)
+legend(x = 'topright', legend = ave_price_df$neighbourhood_cleansed, pch = 19, col = ave_price_df$color)
+points(x = 14.7287, y = 36.9257, pch = 17, col = 'grey')
+legend(x = 'bottomright', legend = 'Ragusa cathedral', pch = 17, col = 'grey')
 dev.off()
 ```
 # Exercise 2
@@ -100,6 +100,9 @@ simulate_investment = function (start_date, end_date, investment_USD){
   max_date = max(stock_price_df$Date)
   if (start_date_d < min_date | end_date_d > max_date | start_date_d > end_date_d){
     warning("The dates entered exceed the limit or are in reverse order!!!")
+  }
+  if (investment_USD <= 0){
+    warning("The initial investment entered is not correct!!!")
   }
   hold_price_df = stock_price_df[(stock_price_df$Date >= start_date_d) & (stock_price_df$Date <= end_date_d), ]
   buy_price = hold_price_df$Open[1]
