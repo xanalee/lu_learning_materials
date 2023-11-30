@@ -26,7 +26,7 @@ head(valid_df, 5)
 ```
 ## 4
 ```{r}
-ave_price_df = aggregate(valid_df[, 'price', drop = FALSE], by = list(neighbourhood_cleansed=valid_df$neighbourhood_cleansed), mean)
+ave_price_df = aggregate(valid_df[, 'price', drop = FALSE], by = list(neighbourhood_cleansed=valid_df$neighbourhood_cleansed), fun = mean)
 ave_price_df
 ```
 ## 5
