@@ -22,16 +22,15 @@ EM_function = function(x, n.iter) {
   # 2: initialize the algorithm
   range_pi1start = c(runif(1, 0.2, 0.45), runif(1, 0.55, 0.8))
   pi1hat[1] = mean(range_pi1start)
-  p1hat[1, ] = runif(n, range_pi1start[1], range_pi1start)
+  p1hat[1, ] = runif(n, range_pi1start[1], range_pi1start[2])
   # 3. first M step:
-  muhat[1, ] = optim(c(2, 3), function(theta) 
-    neg.logl(theta, pi1hat[1], p1hat[1,], x))$par
+  muhat[1, ] = optim(c(2, 3), function(theta)neg.logl(theta, pi1hat[1], p1hat[1,], x))$par
   # 4. run the EM:
   for (t in 2:n.iter) {
     # E step: update individual probability memberships
     p.temp = cbind(
-      p1hat[t-1,] * dnorm(x, muhat[t-1, 1], sigma),
-      (1 - p1hat[t-1,]) * dnorm(x, muhat[t-1, 2], sigma) )
+      pi1hat[t-1] * dnorm(x, muhat[t-1, 1], sigma),
+      (1 - pi1hat[t-1]) * dnorm(x, muhat[t-1, 2], sigma) )
     p1hat[t, ] = p.temp[ , 1]/rowSums(p.temp)
     # M step: update parameter estimates
     pi1hat[t] = mean(p1hat[t, ])
