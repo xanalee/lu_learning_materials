@@ -123,7 +123,7 @@ Fisher prepared 8 cups, 4 of each kind, and asked Muriel to indicate which 4 cup
 
 (c) Muriel Bristol guessed all four cups correctly. Calculate the $p$-value that corresponds to this result.
 
-### (a)
+### \textcolor{red}{(a)}
 Based on the null hypothesis and test statistics, I use two-side test.
 ```{r}
 alpha = 0.05
@@ -138,10 +138,10 @@ In conclusion, when $X>3$ or $X<1$, we reject null hypothesis for $\alpha = 0.05
 type1 = 1 - phyper(3-1, m = 4, n = 4, k = 4)
 type1 # type I error
 ```
+### \textcolor{red}{(c)}
 ```{r}
-# (c)
 X_obs = 4
-p_value = 2*(1 - phyper(X_obs, m = 4, n = 4, k = 4)) # two-side test
+p_value = 2*(1 - phyper(X_obs-1, m = 4, n = 4, k = 4)) # two-side test
 p_value # p-value
 ```
 
@@ -164,7 +164,7 @@ Suppose we have i.i.d. data $(X_1, \ldots, X_n) = (21.3, 4.1, 18.5, 15.2, 9.3)$ 
 
 (c) Is $\theta=1$ contained in the asymptotic 95%-likelihood confidence interval for $\theta$?
 
-### (b)
+### \textcolor{red}{(b)}
 ```{r}
 X = c(21.3, 4.1, 18.5, 15.2, 9.3)
 n = length(X)
@@ -178,7 +178,7 @@ theta0 = 1
 for (i in 1:k){
   X1 = rgamma(n, shape = 4, rate = theta0)
   theta_hat = 4/mean(X1)
-  lrt[i] = loglik(theta_hat) - loglik(theta0) # likelihood ratio test
+  lrt[i] = sum(dgamma(X1, shape = 4, rate = theta_hat, log = TRUE)) - sum(dgamma(X1, shape = 4, rate = theta0, log = TRUE)) # likelihood ratio test
 }
 lrt_cv = quantile(lrt, 0.95)
 lrt_cv # numerical critical value
