@@ -1,0 +1,147 @@
+---
+title: "week7 exercise"
+author: "Xiang Li"
+date: "2023/11/16"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(faraway)
+library(MASS)
+```
+# Exercise 2
+```{r}
+f = function (df){
+  num_col = sapply(df, is.numeric)
+  char_col = sapply(df, is.character)
+  fac_col = sapply(df, is.factor)
+  type = num_col | char_col | fac_col
+  if (length(type[type]) == 0){
+    return('This dataframe contains no numeric, character or factor values')
+  }
+  else{
+    num_df = df[, num_col]
+    if (ncol(num_df) > 0){
+      for (i in 1: ncol(num_df)){
+      i_name = colnames(num_df)[i]
+      hist(num_df[, i], breaks = 100, xlab = i_name, xlim = c(min(num_df[, i]), max(num_df[, i])), col = 'skyblue', main = paste0('Histogram of ', i_name), probability = TRUE)
+      }
+    }
+    char_df = df[, char_col | fac_col]
+    if (ncol(char_df) > 0){
+      for (i in 1: ncol(char_df)){
+      i_name = colnames(char_df)[i]
+      count = aggregate(char_df[, 1, drop = FALSE], by = list(name=char_df[, i]), FUN = length)
+      colnames(count)[2] = 'count'
+      barplot(height = count$count, names.arg = count$name, xlab = i_name, col = 'lightgreen', ylim = c(0, max(count$count)), main = paste0('Barplot of ', i_name))
+      }
+    }
+  }
+}
+```
+```{r}
+f(gala)
+```
+```{r}
+f(amlxray)
+```
+
+# Exercise 3
+## 1
+```{r}
+mean_v = apply(state.x77, 2, mean)
+median_v = apply(state.x77, 2, median)
+sd_v = apply(state.x77, 2, sd)
+skew_v = apply(state.x77, 2, psych::skew)
+sum_sta_df = data.frame(mean=mean_v, median=median_v, standard_deviation=sd_v, skewness=skew_v)
+sum_sta_df
+```
+## 2
+```{r}
+cns = colnames(state.x77)
+for (i in 1:ncol(state.x77)){
+  i_name = cns[i]
+  hist(state.x77[, i], breaks = 100, xlab = i_name, xlim = c(min(state.x77[, i]), max(state.x77[, i])), col = 'skyblue', main = paste0('Histogram of ', i_name), probability = TRUE, plot = TRUE)
+}
+```
+
+## 3
+The Income, Life Exp and Murder are almost symmetric.Population, Illiteracy and Area are positive skewed. HS Grad and Frost are negative skewed.
+
+## 4
+```{r}
+plot(x = state.x77[, 'Illiteracy'], y = state.x77[, 'Life Exp'], type = 'p', col = 'orange', xlab = 'Illiteracy', ylab = 'Life Exp', main = 'Illiteracy vs Life Exp')
+```
+With the increase of Illiteracy rate, the life expectancy decreases.
+
+## 5
+```{r}
+cor.test(x = state.x77[, 'Illiteracy'], y = state.x77[, 'Life Exp'], alternative = 'two.sided', method = 'pearson')
+```
+Lower Illiteracy rate means higher education level, which will improve people's life quality and increase life expectancy.
+
+# Exercise 4
+```{r}
+c1 = c(0, 1)
+c2 = expand.grid(c1, c1)
+c2s = rowSums(c2)
+```
+## 1
+```{r}
+hist(c2s, breaks = 3, main = 'Histogram of c2s')
+dim(c2)
+```
+
+`expand.grid()` lists all combinations from given vectors. `rowSums()` lists the sum of each combination from given vectors.
+
+## 2
+```{r}
+c5 = expand.grid(c1, c1, c1, c1, c1)
+c5s = rowSums(c5)
+hist(c5s, breaks = 6, main = 'Histogram of c5s')
+dim(c5)
+```
+The distribution of c5s gets a peak in center.
+
+## 3
+```{r}
+c15 = expand.grid(replicate(15, c1, simplify = F))
+c15s = rowSums(c15)
+hist(c15s, breaks = 16, main = 'Histogram of c15s')
+dim(c15) == c(2**15, 15)
+```
+## 4
+```{r}
+sta_ls = list(range=range(c15s), mean=mean(c15s), std=sd(c15s))
+sta_ls
+c(sta_ls$mean, 15*0.5)
+c(sta_ls$std, (15*0.5*0.5)**0.5)
+```
+## 5
+```{r}
+rn_v = rnorm(1e3, mean = sta_ls$mean, sd = sta_ls$std)
+hist(rn_v, breaks = 16, xlim = c(min(rn_v), max(rn_v)), main = 'Histogram of rn_v', probability = TRUE)
+```
+The distribution of $10^3$ random numbers is similar to the distribution of c15s.
+
+## 6
+```{r}
+rn_v1 = rnorm(1e3, mean = sta_ls$mean-0.5, sd = sta_ls$std)
+hist(rn_v1, breaks = 16, xlim = c(min(rn_v1), max(rn_v1)), main = 'Histogram of rn_v1', probability = TRUE)
+curve(expr = dnorm(x, sta_ls$mean-0.5, sta_ls$std), add = TRUE)
+```
+
+# Exercise 5
+```{r}
+fib = c(1, 1)
+i = 2
+fib_sum = sum(fib)
+while (fib_sum < 22000){
+  i = i+1
+  fib[i] = fib[i-2] + fib[i-1]
+  fib_sum = sum(fib)
+}
+length(fib)
+```
