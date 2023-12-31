@@ -1,0 +1,127 @@
+---
+title: "week12 exercise"
+author: "Xiang Li"
+date: "2023/12/30"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+library(brolgar)
+```
+# Exercise 1
+## 1
+```{r}
+setwd('/Users/macbookpro/Desktop/learning materials/Statistical Computing with R')
+data_df = read.csv('data/irish_polls.csv')
+data_df[data_df == 'Not Available'] = NA
+to_decimal = function(x) {
+  return(sub('%', '', x))
+}
+data_df[, 10:21] = lapply(data_df[, 10:21], to_decimal)
+data_df[, 10:21] = as.numeric(unlist(data_df[, 10:21]))/100
+colnames(data_df)[c(11:12, 17)] = c('Fianna.Fail', 'Sinn.Fein', 'Aontu')
+```
+## 2
+```{r}
+order_data_df = mutate(data_df, Fieldwork.End = as.Date(Fieldwork.End, format = '%Y-%m-%d'))
+order_data_df = arrange(order_data_df, desc(Fieldwork.End))
+slice_data_df = head(data_df, 10)
+```
+## 3
+```{r}
+mean_df = as.data.frame(t(summarize(slice_data_df, across('Fine.Gael': 'Other', mean))))
+colnames(mean_df) = 'ave'
+mean_df
+```
+## 4
+```{r}
+mean_df1 = filter(mean_df, ave > 0.06)
+new_row = data.frame(ave = 1 - sum(mean_df1$ave), row.names = 'Others')
+mean_df1 = rbind(mean_df1, new_row)
+mean_df1
+```
+## 5
+```{r}
+mean_df1$party = rownames(mean_df1)
+ggplot(mean_df1, aes(x=party, y=ave, fill = party)) + geom_bar(stat = 'identity') + ggtitle('Average Estimated Share of Each Party')
+```
+
+## 6
+```{r}
+mean_df1$party = rownames(mean_df1)
+ggplot(mean_df1, aes(x='', y=ave, fill = party)) + geom_bar(stat = 'identity') + coord_polar('y') + ggtitle('Average Estimated Share of Each Party') + theme_void()
+```
+
+# Exercise 2
+## 3
+```{r}
+data_df = read.csv('data/human-rights-index-vs-gdp-per-capita.csv')
+```
+## 4
+```{r}
+data2018_df = filter(data_df, Year == 2018)
+data2018_df = rename(data2018_df, HRI = civ_libs_vdem_owid, GDPpc = GDP.per.capita, Population = Population..historical.estimates.)
+```
+## 5
+```{r}
+ggplot(data2018_df, aes(x=GDPpc, y=HRI)) + geom_point() + ggtitle('Human rights index vs. GDP per capita, 2018') + labs(x='GDP per capita', y='Human rights')
+```
+
+## 6
+```{r}
+data2015_df = select(filter(data_df, Year == 2015), Entity, Continent)
+data2018_df = select(data2018_df, ! Continent)
+data2018_df = merge(data2018_df, data2015_df, by = 'Entity', all.x = TRUE)
+ggplot(data2018_df, aes(x=GDPpc, y=HRI, color=Continent)) + geom_point() + ggtitle('Human rights index vs. GDP per capita, 2018') + labs(x='GDP per capita', y='Human rights')
+```
+
+## 7
+```{r}
+data2018_df = filter(data2018_df, !(is.na(GDPpc) | is.na(HRI) | Entity == 'World'))
+ggplot(data2018_df, aes(x=GDPpc, y=HRI, color=Continent)) + geom_point() + ggtitle('Human rights index vs. GDP per capita, 2018') + labs(x='GDP per capita', y='Human rights')
+```
+
+## 8
+```{r}
+ggplot(data2018_df, aes(x=GDPpc, y=HRI, color=Continent, size=Population)) + geom_point() + ggtitle('Human rights index vs. GDP per capita, 2018') + labs(x='GDP per capita', y='Human rights')
+```
+
+# Exercise 3
+```{r}
+heights = as.data.frame(heights)
+```
+## 1
+```{r}
+heights1980 = filter(heights, year == 1980)
+dplyr::count(heights1980, continent)
+```
+
+## 2
+```{r}
+mean_h1980 = summarize(group_by(heights1980, continent), mean = mean(height_cm))
+```
+Vertical boxplot:
+```{r}
+vb = ggplot(heights1980, aes(x = continent, y = height_cm, color = continent)) + geom_boxplot() + ggtitle('Height of Male Population Across Continents, 1980') + labs(y = 'height(cm)')
+vb
+```
+
+Horizontal boxplot:
+```{r}
+hb = ggplot(heights1980, aes(x = height_cm, y = continent, color = continent)) + geom_boxplot() + ggtitle('Height of Male Population Across Continents, 1980') + labs(x = 'height(cm)')
+hb
+```
+
+Vertical boxplot without legend:
+```{r}
+vb + theme(legend.position = 'none')
+```
+
+Horizontal boxplot without legend:
+```{r}
+hb + theme(legend.position = 'none')
+```
