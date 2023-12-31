@@ -1,0 +1,187 @@
+---
+title: "week8 exercise"
+author: "Xiang Li"
+date: "2023/12/28"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 55), tidy = TRUE, error = TRUE)
+```
+```{r}
+library(brolgar)
+library(vioplot)
+library(mvtnorm)
+library(corrplot)
+```
+# Exercise 1
+## 2
+```{r}
+vc = function(v){
+  if (! is.numeric(v)) {
+    stop('Function input should be a numeric vector!!!')
+  }
+  else if (length(v[is.na(v)]) > 0) {
+    warning('The supplied vector contains missing values!!!')
+  }
+  else {
+    result = v-mean(v)
+    return(result)
+  }
+}
+vs = function(v){
+  if (! is.numeric(v)) {
+    stop('Function input should be a numeric vector!!!')
+  }
+  else if (length(v[is.na(v)]) > 0) {
+    warning('The supplied vector contains missing values!!!')
+  }
+  else {
+    result = v/sd(v)
+    return(result)
+  }
+}
+vn = function(v){
+  if (! is.numeric(v)) {
+    stop('Function input should be a numeric vector!!!')
+  }
+  else if (length(v[is.na(v)]) > 0) {
+    warning('The supplied vector contains missing values!!!')
+  }
+  else {
+    result = (v-mean(v))/sd(v)
+    return(result)
+  }
+}
+```
+## 3
+```{r}
+obj1 = matrix(1:10, 5, 2)
+obj2 = c(5, 7, 10, -25)
+obj3 = c(42, NA, 3, 7)
+obj4 = c(pi, 42, 'apple', sqrt(3))
+```
+```{r}
+vc(obj1)
+```
+```{r}
+vc(obj2)
+```
+```{r}
+vc(obj3)
+```
+```{r}
+vc(obj4)
+```
+```{r}
+vs(obj1)
+```
+```{r}
+vs(obj2)
+```
+```{r}
+vs(obj3)
+```
+```{r}
+vs(obj4)
+```
+```{r}
+vn(obj1)
+```
+```{r}
+vn(obj2)
+```
+```{r}
+vn(obj3)
+```
+```{r}
+vn(obj4)
+```
+# Exercise 2
+## 2
+```{r}
+sk = function(v){
+  v_bar = mean(v)
+  result = mean((v - v_bar) ** 3)/(var(v)**(3/2))
+  return(result)
+}
+gen_sk = function(v){
+  if (!(is.vector(v) | is.matrix(v))) {
+    stop('Wrong type of input!!!')
+  }
+  else if (any(is.na(v))){
+    warning('The supplied vector contains missing values!!!')
+  }
+  else if (is.matrix(v)){
+    warning('Supplied input is a matrix. Skewness by column returned!!')
+    return(apply(v, 2, FUN = sk))
+  }
+  else{
+    return(sk(v))
+  }
+}
+gen_sk(matrix(rnorm(100), nrow = 20, byrow = TRUE))
+```
+# Exercise 3
+```{r}
+
+heights = as.data.frame(heights)
+wages = as.data.frame(wages)
+```
+## 1
+```{r}
+height1980_df = heights[heights$year == 1980, ]
+c_n = length(unique(height1980_df$continent))
+par(bty = 'l')
+boxplot(height_cm ~ continent, data = height1980_df, horizontal = TRUE, main = 'Horizontal Boxplot', col = rainbow(c_n))
+par(bty = 'l')
+boxplot(height_cm ~ continent, data = height1980_df, horizontal = FALSE, main = 'Vertical Boxplot', col = rainbow(c_n))
+```
+```{r}
+par(bty = 'l')
+vioplot(height_cm ~ continent, data = height1980_df, horizontal = TRUE, main = 'Horizontal Vioplot', col = rainbow(c_n))
+par(bty = 'l')
+vioplot(height_cm ~ continent, data = height1980_df, horizontal = FALSE, main = 'Vertical Vioplot', col = rainbow(c_n))
+```
+
+## 2
+```{r}
+wagesl2_df = wages[wages$xp <= 2, ]
+c_n = length(unique(wagesl2_df$high_grade))
+par(bty = 'l')
+vioplot(ln_wages ~ high_grade, data = wagesl2_df, horizontal = TRUE, main = 'Horizontal Vioplot', col = rainbow(c_n))
+```
+
+# Exercise 4
+## 1
+```{r}
+set.seed(8)
+Sigma1 = matrix(c(1, 0.5, -0.3, 0.5, 1, -0.6, -0.3, -0.6, 1), 3, 3)
+m1 = rmvnorm(500, mean = rep(0, 3), sigma = Sigma1)
+Sigma2 = matrix(c(1, 0.4, 0.4, 1), 2, 2)
+m2 = rmvnorm(500, mean = rep(0, 2), sigma = Sigma2)
+all.vars = cbind(m1, m2)
+colnames(all.vars) = paste0('X', 1:5)
+```
+The code is generating 5 variables which have 500 samples for each one. The first 3 variables follow 3-variate normal distribution with parameter $\mu = [3, 3, 3]$ and $\sigma = Sigma1$. The last 2 variables follow 2-variate normal distribution with parameter $\mu = [2, 2]$ and $\sigma = Sigma2$.
+
+## 2
+```{r}
+cor_tab = cor(all.vars)
+cor_tab
+```
+## 3
+```{r}
+cor_tab[1:3, 1:3]
+cor_tab[4:5, 4:5]
+```
+The correlations between $X_1$, $X_2$, $X_3$ are almost equal to Sigma1. The correlations between $X_4$, $X_5$ are almost equal to Sigma2.
+
+## 4
+```{r}
+corrplot(cor_tab, method="circle")
+```
+
+## 5
+```{r}
+corrplot(cor_tab, method="circle", col = colorRampPalette(c("red", "darkgreen"))( 100))
+```

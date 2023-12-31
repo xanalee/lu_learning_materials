@@ -1,0 +1,125 @@
+---
+title: "week9 exercise"
+author: "Xiang Li"
+date: "2023/12/29"
+output: pdf_document
+---
+```{r}
+library(rbenchmark)
+```
+# Exercise 1
+```{r}
+set.seed(9)
+x1 = rbinom(n = 20000, size = 5, prob = 0.3)
+x2 = rgamma(n = 30000, shape = 2, rate = 1)
+```
+## 1
+```{r}
+mean(x1)
+mean(x2)
+```
+`rbinom` generates ramdom samples that follow the specified binomial distribution with parameter `size` and `prob`.
+
+`rgamma` generates ramdom samples that follow the specified gamma distribution with parameter `shape` and `rate`.
+
+## 2
+```{r}
+my_mean = function (x) {
+  n = length(x)
+  sum_x = 0
+  for (i in 1:n){
+    sum_x = sum_x + x[i]
+  }
+  mean_x = sum_x/n
+  return(mean_x)
+}
+my_mean(x1)
+```
+## 3
+```{r}
+ben1 = benchmark('mean_x1' = {mean(x1)}, 'my_mean_x1' = {my_mean(x1)}, replications = 500)
+ben1
+ben2 = benchmark('mean_x2' = {mean(x2)}, 'my_mean_x2' = {my_mean(x2)}, replications = 500)
+ben2
+```
+Using `mean()` is faster. The execution time of `my_mean()` is more than 16 times longer than `mean()`.
+
+# Exercise 2
+```{r}
+set.seed(9)
+n = 2000
+p = 500
+m1 = matrix(rnorm(n*p, mean = 4.7, sd = 0.5), ncol = p)
+```
+## 1
+```{r}
+ben = benchmark(
+        'apply' = {apply(m1, 2, mean)},
+        'colMeans' = {colMeans(m1)},
+        'pre_for' = {
+          c_n = ncol(m1)
+          c_mean_v = rep(NA, c_n)
+          for (c in 1:c_n){
+            c_mean_v[c] = mean(m1[,c])
+          }
+        },
+        'for' = {
+          c_n = ncol(m1)
+          c_mean_v = c()
+          for (c in 1:c_n){
+            c_mean_v[c] = mean(m1[,c])
+          }
+        },
+        replications = 100
+)
+ben
+```
+`colMeans()` is fastest and `apply()` is slowest.
+
+# Exercise 3
+```{r}
+1 - pbinom(44, size = 127, prob = 0.38)
+```
+# Exercise 4
+## 1
+```{r}
+dpois(7, lambda = 6)
+```
+## 2
+```{r}
+0
+```
+Gamma distribution is a continuous distribution. Thus, for one point, the probability is equal to 0.
+
+## 3
+```{r}
+ppois(4, lambda = 6) - ppois(2, lambda = 6)
+```
+## 4
+```{r}
+pgamma(3, shape = 3, rate = 2) - pgamma(1, shape = 3, rate = 2)
+```
+## 5
+```{r}
+ppois(5, lambda = 6)
+```
+## 6
+```{r}
+ppois(3, lambda = 6) + pgamma(10, shape = 3, rate = 2)
+```
+# Exercise 5
+## 1
+```{r}
+set.seed(123)
+x = rnorm(1e4, mean = 3, sd = 1.4)
+y = rbeta(1e4, shape1 = 2, shape2 = 2)
+```
+## 2
+```{r}
+z = x/y
+```
+## 3
+```{r}
+mean(z)
+var(z)
+```

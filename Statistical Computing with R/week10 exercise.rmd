@@ -1,0 +1,152 @@
+---
+title: "week10 exercise"
+author: "Xiang Li"
+date: "2023/12/29"
+output: pdf_document
+---
+# Exercise 1
+## 1
+```{r}
+f = function (x){
+  x**3-2*x+5
+}
+deriv_f = function (x){
+  3*x**2-2
+}
+curve(expr = deriv_f(x), from = -2, to = 2)
+abline(h=0, col='red')
+```
+The curve of $f^\prime (x)$ is above. On interval $(-\infty, -\sqrt{\frac{2}{3}}) \bigcup (\sqrt{\frac{2}{3}}, +\infty)$, $f^\prime (x)$ is positive and $f(x)$ is increasing; on interval $(-\sqrt{\frac{2}{3}}, \sqrt{\frac{2}{3}})$, $f^\prime (x)$ is negative and $f(x)$ is decreasing.
+
+## 2
+No. Because based on the sign of $f^\prime (x)$, the global minimum of $f(x)$ is on $x \to -\infty$ and $\lim_{x \to -\infty} f(x) = -\infty$ and global maximum of $f(x)$ is on $x \to +\infty$ and $\lim_{x \to +\infty} f(x) = +\infty$.
+
+## 3
+Yes. Based on the sign of $f^\prime (x)$, the local minima and maxima are points where $f^\prime (x) = 0$. Thus, $x=-\sqrt{\frac{2}{3}}$ is local maxima and $x=\sqrt{\frac{2}{3}}$ is local minima.
+```{r}
+c(-(2/3)**0.5, (2/3)**0.5)
+```
+
+## 4
+```{r}
+optimize(f = f, interval = c(-5, 0), maximum = TRUE)
+optimize(f = f, interval = c(-5, 0), maximum = FALSE)
+optimize(f = f, interval = c(0, 5), maximum = TRUE)
+optimize(f = f, interval = c(0, 5), maximum = FALSE)
+```
+The results show that my answers to (2) and (3) are correct.
+
+# Exercise 2
+## 1
+```{r}
+lik = function (x, lamb){
+  result = prod(dpois(x, lambda = lamb))
+  return(result)
+}
+```
+## 2
+```{r}
+loglik = function (x, lamb){
+  result = sum(dpois(x, lambda = lamb, log = TRUE))
+  return(result)
+}
+```
+## 3
+$\lambda = \bar{x}$
+
+## 4
+```{r}
+loglik = function (x, lamb){
+  result = sum(dpois(x, lambda = lamb, log = TRUE))
+  return(result)
+}
+```
+## 5
+```{r}
+x1 = c(9, 7, 7, 8, 10, 5, 8, 4, 3, 5, 7, 7, 9, 6)
+optimize(loglik, c(3, 10), x = x1, maximum =TRUE)
+set.seed(10)
+x2 = rpois(300, lambda = 3)
+optimize(loglik, c(0, 4), x = x2, maximum =TRUE)
+```
+## 6
+```{r}
+mean(x1)
+mean(x2)
+```
+The results almost match.
+
+# Exercise 3
+## 1
+$l(\alpha, \beta) = n\alpha ln(\beta)+(\alpha - 1)\sum_{i=1}^{n} ln(x_i) - \beta \sum_{i=1}^{n} x_i - \sum_{i=1}^{n} ln((\alpha - 1)!)$
+
+## 2
+```{r}
+loglik = function (para, x){
+  alpha = para[1]
+  beta = para[2]
+  result = -sum(dgamma(x, shape = alpha, scale = beta, log = TRUE))
+  return(result)
+}
+```
+## 3
+```{r}
+x = iris$Petal.Width
+```
+Nelder-Mead algorithm:
+```{r}
+optim(c(1, 1), loglik, x = x)
+```
+L-BFGS-B algorithms:
+```{r}
+optim(c(1, 1), loglik, x = x, method = 'L-BFGS-B', lower = c(0, 0))
+```
+## 4
+```{r}
+loglik1 = function (para, x){
+  alpha = exp(para[1])
+  beta = exp(para[2])
+  result = -sum(dgamma(x, shape = alpha, scale = beta, log = TRUE))
+  return(result)
+}
+opt_result = optim(c(1, 1), loglik1, x = x)
+exp(opt_result$par)
+```
+# Exercise 4
+## 1
+```{r}
+iris_sp = split(iris, iris$Species)
+```
+## 2
+The 95% confidence interval of $\mu_X$:
+```{r}
+mu_x = t.test(iris_sp$setosa$Sepal.Length)
+mu_x$conf.int
+```
+The 95% confidence interval of $\mu_Y$:
+```{r}
+mu_y = t.test(iris_sp$versicolor$Sepal.Length)
+mu_y$conf.int
+```
+The 95% confidence interval of $\mu_Z$:
+```{r}
+mu_z = t.test(iris_sp$virginica$Sepal.Length)
+mu_z$conf.int
+```
+## 3
+```{r}
+t.test(iris_sp$setosa$Sepal.Length, mu = 5, conf.level = 0.99)
+```
+The conclusion is that not reject the null hypothesis $\mu_X = 5$.
+
+## 4
+```{r}
+t.test(iris_sp$versicolor$Sepal.Length, mu = 5, conf.level = 0.95)
+```
+The conclusion is that reject the null hypothesis $\mu_Y = 5$.
+
+## 5
+```{r}
+t.test(x = iris_sp$versicolor$Sepal.Length, y = iris_sp$virginica$Sepal.Length, conf.level = 0.99)
+```
+The conclusion is that reject the null hypothesis $\mu_Y = \mu_Z$.

@@ -1,0 +1,147 @@
+---
+title: "week13 exercise"
+author: "Xiang Li"
+date: "2023/12/31"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(brolgar)
+library(ptmixed)
+library(reshape2)
+library(dplyr)
+library(magrittr)
+```
+# Exercise 1
+```{r}
+df_long = as.data.frame(heights)
+```
+## 1
+```{r}
+df_long1 = df_long[(df_long$continent == 'Europe') & (df_long$year >= 1870) & (df_long$year <= 1930), ]
+head(df_long1, 5)
+```
+
+## 2
+```{r, fig.height = 9, fig.width = 9, fig.align = "center"}
+coun_n = length(unique(df_long1$country))
+make.spaghetti(year, height_cm, id = country, group = country, data = df_long1, legend.title = 'COUNTRY', col = 1:coun_n, cex.leg = 0.85, legend.inset = -0.18)
+```
+
+# Exercise 2
+## 1
+```{r}
+df_long_wd = dcast(df_long, country+continent~year, value.var = 'height_cm')
+head(df_long_wd, 5)
+```
+
+## 2
+```{r}
+rename_f = function (x){
+  paste0('height_', as.character(x))
+}
+colnames(df_long_wd)[3:ncol(df_long_wd)] = sapply(colnames(df_long_wd)[3:ncol(df_long_wd)], rename_f)
+head(df_long_wd, 5)
+```
+
+## 3
+```{r}
+par(bty = 'l')
+plot(x = df_long_wd$height_1870, y = df_long_wd$height_1930, type = 'p', col = 'blue', xlab = 'Height in 1870', ylab = 'Height in 1930')
+abline(a = 0, b = 1, col = 'red', lwd = 2)
+```
+
+## 4
+For most countries, height increase during 1870 to 1930. But there are some exceptions.
+
+# Exercise 3
+## 1
+```{r}
+load('data/data_metadata_country.RData')
+```
+## 2
+Horizontal merge.
+
+## 3
+Country.Code can be key for the merge.
+
+## 4
+```{r}
+population = select(population, ! X)
+metadata = select(metadata, ! X)
+data_df = merge(population, metadata, by = 'Country.Code', all = T)
+head(data_df, 5)
+```
+## 5
+```{r}
+data_df = filter(data_df, ! Region == '')
+```
+## 6
+### a)
+```{r}
+summarize(group_by(data_df, Region), large2020=max(X2020))
+```
+
+### b)
+```{r}
+summarize(group_by(data_df, Region), large2020_country=Country.Name[which.max(X2020)])
+```
+
+# Exercise 4
+```{r}
+data(iris)
+df.list = split(iris, iris$Species)
+lapply(df.list, summary)
+```
+## 1
+```{r}
+iris |> split(iris$Species) |> lapply(summary)
+```
+## 2
+```{r}
+iris %>% split(iris$Species) %>% lapply(summary)
+```
+# Exercise 5
+## 1
+```{r}
+data_df = read.csv('data/irish_polls.csv')
+data_df[data_df == 'Not Available'] = NA
+to_decimal = function(x) {
+  return(sub('%', '', x))
+}
+data_df[, 10:21] = lapply(data_df[, 10:21], to_decimal)
+data_df[, 10:21] = as.numeric(unlist(data_df[, 10:21]))/100
+```
+## 2
+```{r}
+data_df = filter(data_df, (Fieldwork.End >= '2021-05-27') & (Fieldwork.End <= '2021-09-09'))
+colna = c(colnames(data_df)[1:9], colnames(data_df)[10:21][!apply(is.na(data_df[, 10:21]), 2, any)])
+data_df = data_df[, colna]
+```
+## 3
+```{r}
+data_df = mutate(data_df, Fieldwork.End = as.Date(Fieldwork.End, '%Y-%m-%d'))
+data_df_long = melt(data_df, id.vars = colnames(data_df)[1:9])
+head(data_df_long, 5)
+data_df_long = rename(data_df_long, Party = variable, Share = value)
+```
+
+## 4
+```{r}
+coun_n = length(unique(data_df_long$Party))
+make.spaghetti(Fieldwork.End, Share, id = Party, group = Party, data = data_df_long, legend.title = 'Party', col = 1:coun_n, cex.leg = 1, legend.inset = -0.55, xlab = 'Fieldwork End Date', ylab = 'Share', title = 'Percentage of Votes for Parties')
+```
+
+## 5
+```{r}
+mean_share = data_df_long |> group_by(Party) |> summarize(mean = mean(Share))
+mean_share
+```
+
+## 6
+```{r}
+mean_share$Party[which.max(mean_share$mean)]
+```
+Yes, the line of Sinn.Fein is in the highest position.
