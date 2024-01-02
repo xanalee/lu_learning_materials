@@ -13,14 +13,13 @@ if(!"ggplot2" %in% pkgs) install.packages("ggplot2")
 if(!"car" %in% pkgs) install.packages("car")
 if(!"doBy" %in% pkgs) install.packages("doBy")
 if(!"multcomp" %in% pkgs) install.packages("multcomp")
-```
-```{r}
+
 library(ggplot2)
 library(car) #for type 2 sum of squares
 library(doBy)
 library(emmeans)
 ```
-# Exercise 1: Scientific writing
+# Exercise 1
 ```{r}
 # Read data into an object named teaching_data
 # Check whether Program needs to be converted to a factor
@@ -51,6 +50,8 @@ Anova(teaching.lm)
 ```{r}
 #check out the average ages per group and the overall mean age
 summaryBy(age ~ Program, data = teaching_data, FUN=mean)
+```
+```{r}
 mean(teaching_data$age)
 ```
 ```{r}
@@ -60,7 +61,7 @@ emmeans(teaching.lm, specs = "Program", by = "age")
 ```{r}
 pairs(emmeans(teaching.lm, specs = "Program", by = "age"), adjust="none")
 ```
-# Exercise 2: Rats and roasted peanuts
+# Exercise 2
 ```{r}
 # Read data into an object named rats_data
 rats_data <- read.table(file = "RoastedPeanuts.txt", header = TRUE)
@@ -68,7 +69,6 @@ str(rats_data)
 ```
 ```{r}
 # createa plot with least-quares fitted lines per sex
-library(ggplot2)
 ggplot(rats_data, aes(x = fraction, y = weight_gain, color = sex )) +
   geom_point(aes(size = 1.5)) +                # make the dots a little larger
   geom_smooth(method = "lm", se=FALSE)

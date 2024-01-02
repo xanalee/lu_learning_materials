@@ -19,8 +19,9 @@ library(car)
 y <- Duncan$prestige
 X <- cbind(1,Duncan$income,Duncan$education)
 #Least squares coefficients:
-Xinv=solve(t(X)%*%X)
+(Xinv=solve(t(X)%*%X))
 b <- Xinv %*% t(X) %*% y
+b
 ```
 ## b.
 ```{r}
@@ -59,6 +60,7 @@ k <- 2
 ## c.
 ```{r}
 (Vb <- S2e * solve(t(X)%*% X))
+Vb ** 0.5
 ```
 ## d.
 ```{r}
@@ -92,7 +94,6 @@ mean(var_res)
 ## a.
 ```{r}
 cars_data <- mtcars[,c("mpg","disp","hp","wt")]
-head(cars_data)
 
 model_cars <- lm(mpg~disp+hp+wt, data = cars_data)
 
@@ -106,6 +107,7 @@ coef(model_cars)
 (X <- model.matrix(model_cars))
 y <- as.vector(cars_data$mpg)
 beta <- solve(t(X)%*%X)%*%(t(X)%*%y)
+beta
 ```
 ## c.
 ```{r}

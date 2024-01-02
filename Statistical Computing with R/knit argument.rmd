@@ -1,0 +1,11 @@
+---
+title: "knit argument"
+author: "Xiang Li"
+date: "2024/1/2"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 55), tidy = TRUE, error = TRUE)
+```
+```{r, fig.width = 9, fig.height = 9, fig.align = 'center'}
+```
