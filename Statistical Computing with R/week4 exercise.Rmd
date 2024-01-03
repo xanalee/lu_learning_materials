@@ -1,7 +1,7 @@
 ---
 title: "week4 exercise"
 author: "Xiang Li"
-date: "2023-10-05"
+date: "2023/10/5"
 output: pdf_document
 ---
 

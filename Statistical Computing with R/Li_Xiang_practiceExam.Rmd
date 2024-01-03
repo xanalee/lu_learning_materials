@@ -1,0 +1,229 @@
+---
+title: "Practice Exam"
+author: "Xiang Li(4013115)"
+date: "2024-01-03"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(tidy = TRUE, tidy.opts = list(with.cutoff = 55), error = TRUE)
+```
+# Exercise 1
+## 1
+```{r}
+cartype_df = read.csv('data/cartype.csv')
+head(cartype_df, 5)
+```
+The dataset is in long fromat.
+
+## 2
+```{r}
+cartype_df1 = cartype_df[cartype_df$Entity %in% c('France', 'Germany', 'Italy', 'Spain', 'United Kingdom'), ]
+head(cartype_df1, 5)
+```
+
+## 3
+```{r}
+library(dplyr)
+```
+```{r}
+cartype_df1$tol_number = cartype_df1$battery_electric_number + cartype_df1$petrol_number + cartype_df1$diesel_gas_number + cartype_df1$hybrid_number
+cartype_df1 = mutate(cartype_df1, battery_electric_prop = battery_electric_number/tol_number, petrol_prop = petrol_number/tol_number, diesel_gas_prop = diesel_gas_number/tol_number, hybrid_prop = hybrid_number/tol_number)
+```
+## 4
+```{r}
+summarise(group_by(cartype_df1, Year), diesel_pop_coun = Entity[which.max(diesel_gas_prop)])
+```
+Based on the table above, diesel cars were most popular in France in 2008 and in Italy in 2018.
+
+## 5
+```{r}
+G2005_df = data.frame(type = c("battery_electric", "petrol", "hybrid", "diesel_gas"), number = unlist(cartype_df1[(cartype_df1$Entity == 'Germany') & (cartype_df1$Year == 2005), c("battery_electric_number", "petrol_number", "hybrid_number", "diesel_gas_number")]))
+pie(x = G2005_df$number, labels = G2005_df$type, col = rainbow(4), main = 'Distribution of Car, 2005')
+G2018_df = data.frame(type = c("battery_electric", "petrol", "hybrid", "diesel_gas"), number = unlist(cartype_df1[(cartype_df1$Entity == 'Germany') & (cartype_df1$Year == 2018), c("battery_electric_number", "petrol_number", "hybrid_number", "diesel_gas_number")]))
+pie(x = G2018_df$number, labels = G2018_df$type, col = rainbow(4), main = 'Distribution of Car, 2018')
+```
+The proportions of fully electric battery vehicles and hybrid vehicles increase from 2005 to 2018.
+
+## 6
+```{r}
+library(ptmixed)
+```
+```{r}
+make.spaghetti(Year, hybrid_prop, id = Entity, group = Entity, data = cartype_df1, col = 1:5, ylab = 'Percentage of Hybrid', legend.inset = -0.32)
+```
+The line of United Kingdom is most steep. The United Kingdom has seen a faster diffusion of hybrid vehicles.
+
+## 7
+```{r}
+library(reshape2)
+```
+
+```{r}
+Fran_df = cartype_df1[cartype_df1$Entity == 'France', c(3, 9:12)]
+Fran_df = rename(Fran_df, battery_electric = battery_electric_prop, petrol = petrol_prop, diesel_gas = diesel_gas_prop, hybrid = hybrid_prop)
+Fran_long_df = melt(Fran_df, id.vars = 'Year')
+Fran_long_df = rename(Fran_long_df, Type = variable, Proportion = value)
+make.spaghetti(Year, Proportion, id = Type, group = Type, data = Fran_long_df, col = 1:4, legend.inset = -0.32)
+```
+From 2005 to 2019 in France, the proportions of fully electric battery vehicles and hybrid vehicles slowly increase. The proportion of diesel vehicles first increase then decrease, and the proportion of petroleum vehicles first decrease then increase. I guess diesel vehicles were replaced by petroleum vehicles.
+
+# Exercise 2
+## 1
+```{r}
+df = function(x, k, lamb){
+  (k/lamb)*((x/lamb)**(k-1))*exp(-((x/lamb)**k))
+}
+curve(df(x, k = 7, lamb = 2), from = 0, to = 10, ylab = 'density')
+```
+
+## 2
+```{r}
+optimize(df, interval = c(0.01, 30), k = 3, lamb = 4, maximum = TRUE)
+```
+The mode for $k = 3$ and $\lambda = 4$ is around 3.494.
+
+## 3
+```{r}
+optimize(df, interval = c(0.01, 30), k = 2.3, lamb = 5.7, maximum = TRUE)
+```
+The mode for $k = 2.3$ and $\lambda = 5.7$ is around 4.448.
+
+## 4
+The answer is by pen and paper.
+
+## 5
+```{r}
+mode_f = function(k, lamb){
+  lamb*(((k-1)/k)**(1/k))
+}
+mode_f(k = 3, lamb = 4)
+mode_f(k = 2.3, lamb = 5.7)
+```
+The analytical results are same with numerical results.
+
+Advantage: easy and save time.
+
+Disadvantage: it sometimes can't find the accurate solution.
+
+# Exercise 3
+## 1
+```{r}
+getSummaries = function(x){
+  result = data.frame(Statistic = c('Sample size', 'Mean', 'Median', 'Variance'), Value = c(length(x), mean(x), median(x), var(x)))
+  return(result)
+}
+```
+## 2
+```{r}
+getSummaries = function(x, digits){
+  result = data.frame(Statistic = c('Sample size', 'Mean', 'Median', 'Variance'), Value = c(length(x), mean(x), median(x), var(x)))
+  result$Value = round(result$Value, digits)
+  return(result)
+}
+```
+## 3
+```{r}
+getSummaries = function(x, digits, ignoreNAs){
+  if (ignoreNAs){
+    result = data.frame(Statistic = c('Sample size', 'Sample size without NA', 'Mean', 'Median', 'Variance'), Value = c(length(x), length(x[!is.na(x)]), mean(x, na.rm = T), median(x, na.rm = T), var(x, na.rm = T)))
+  }
+  else{
+    warning('There could be NAs in x!!!\n')
+    result = data.frame(Statistic = c('Sample size'), Value = c(length(x)))
+  }
+  result$Value = round(result$Value, digits)
+  return(result)
+}
+```
+## 4
+```{r}
+getSummaries_v = function(x, digits, ignoreNAs){
+  if (ignoreNAs){
+    result = data.frame(Statistic = c('Sample size', 'Sample size without NA', 'Mean', 'Median', 'Variance'), Value = c(length(x), length(x[!is.na(x)]), mean(x, na.rm = T), median(x, na.rm = T), var(x, na.rm = T)))
+  }
+  else{
+    warning('There could be NAs in x!!!\n')
+    result = data.frame(Statistic = c('Sample size'), Value = c(length(x)))
+  }
+  result$Value = round(result$Value, digits)
+  return(result)
+}
+
+getSummaries = function(x, digits, ignoreNAs){
+  if (is.matrix(x)){
+    result = apply(x, 2, getSummaries_v, digits=digits, ignoreNAs=ignoreNAs, simplify = F)
+    return(result)
+  }
+  else if (is.vector(x)){
+    return(getSummaries_v(x, digits=digits, ignoreNAs=ignoreNAs))
+  }
+}
+```
+## 5
+```{r}
+getSummaries = function(x, digits, ignoreNAs){
+  if (is.matrix(x)){
+    result = apply(x, 2, getSummaries_v, digits=digits, ignoreNAs=ignoreNAs, simplify = F)
+    return(result)
+  }
+  else if (is.vector(x)){
+    return(getSummaries_v(x, digits=digits, ignoreNAs=ignoreNAs))
+  }
+  else{
+    stop('x is invalid!!!\n')
+  }
+}
+```
+```{r}
+set.seed(3078)
+x1 = rhyper(300, 5, 20, 10)
+x2 = c(rep(cars$speed, 3), rep(NA, 50), rep(cars$dist, 2)) 
+x3 = cbind(x1, x2)
+```
+## 6
+```{r}
+getSummaries(x1, digits = 2, ignoreNAs = T)
+```
+```{r}
+getSummaries(x2, digits = 2, ignoreNAs = T)
+```
+```{r}
+getSummaries(x3, digits = 2, ignoreNAs = T)
+```
+
+## 7
+```{r}
+getSummaries(x1, digits = 4, ignoreNAs = F)
+```
+```{r}
+getSummaries(x2, digits = 4, ignoreNAs = F)
+```
+```{r}
+getSummaries(x3, digits = 4, ignoreNAs = F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
