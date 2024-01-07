@@ -1,0 +1,62 @@
+---
+title: "Practical12"
+author: "Xiang Li"
+date: "2023/12/13"
+output: pdf_document
+---
+# Exercise 1
+## a
+```{r}
+bonemarrow = read.csv('bonemarrow.csv')
+model.lm <- lm(agedon~agerec,data=bonemarrow)
+summary(model.lm)
+```
+## b
+```{r}
+model.lm.glm <- glm(agedon~agerec,family=gaussian, data=bonemarrow)
+summary(model.lm.glm)
+```
+## c
+```{r}
+model.lr <- glm(agvhd~agerec,family=binomial , data=bonemarrow)
+summary(model.lr)
+```
+## d
+```{r}
+model.lr.id <- glm(agvhd~agerec,family=binomial(link = "identity"), data=bonemarrow)
+summary(model.lr.id)
+```
+# Exercise 2
+## a
+```{r}
+pill = read.csv('pill.csv')
+sum(pill$thrombosis[pill$type_pill == 2])
+sum(pill$thrombosis[pill$type_pill == 3])
+sum(pill[pill$type_pill == 2, 'users'])
+sum(pill[pill$type_pill == 3, 'users'])
+```
+## b
+```{r}
+sum(pill[pill$type_pill == 2, 'thrombosis'])/sum(pill[pill$type_pill == 2, 'users'])
+sum(pill[pill$type_pill == 3, 'thrombosis'])/sum(pill[pill$type_pill == 3, 'users'])
+```
+## c
+```{r}
+model.pois <- glm(thrombosis~as.factor(type_pill)+offset(log(users)) ,family=poisson , data=pill)
+summary(model.pois)
+```
+## d
+```{r}
+model.pois2 <- glm(thrombosis~as.factor(type_pill)+age+ month + offset(log(users)) ,family=poisson , data=pill)
+summary(model.pois2)
+```
+## e
+```{r}
+p_value = 1 - pchisq(941.77, 884)
+p_value
+```
+## f
+```{r}
+model.pois.disp <- glm(thrombosis~as.factor(type_pill)+age+ month + offset(log(users)) ,family=quasipoisson , data=pill)
+summary(model.pois.disp)
+```
