@@ -15,8 +15,7 @@ if(!"ISLR" %in% pkgs) install.packages("ISLR")
 if(!"corrplot" %in% pkgs) install.packages("corrplot")
 if(!"caret" %in% pkgs) install.packages("caret")
 if(!"stats" %in% pkgs) install.packages("stats")
-```
-```{r}
+
 library(faraway)
 library(MASS)
 library(leaps)
@@ -81,15 +80,13 @@ S_0 <- S/sqrt(I)
 (p_value_S <- 2*pnorm(S_0, lower.tail =  FALSE))
 ```
 # Exercise 2
-## a
+## d
 ```{r}
 n <- 365
 pi_0 <- 30/365
 pi_hat <- 35/365
 AsVar <- pi_hat *(1-pi_hat)/n
-
 Z_W <- (pi_hat - pi_0)/sqrt(AsVar)
-
 (p_value <- pnorm(Z_W, lower.tail = FALSE))
 ```
 # Exercise 3

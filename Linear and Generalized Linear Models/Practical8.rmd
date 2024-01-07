@@ -14,8 +14,7 @@ if(!"MuMIn" %in% pkgs) install.packages("MuMIn")
 if(!"ISLR" %in% pkgs) install.packages("ISLR")
 if(!"corrplot" %in% pkgs) install.packages("corrplot")
 if(!"caret" %in% pkgs) install.packages("caret")
-```
-```{r}
+
 library(faraway)
 library(MASS)
 library(leaps)
@@ -28,8 +27,6 @@ library(caret)
 ## a
 ```{r}
 cars_data <- mtcars[,c("mpg", "cyl", "disp", "hp", "wt")]
-# head(cars_data)
-
 #Create a linear regression model
 cars_model <- lm(mpg~., data = cars_data)
 summary(cars_model)
@@ -38,6 +35,11 @@ corrplot(cor(cars_data), method = "number")
 ## b
 ```{r}
 vif(cars_model)
+```
+```{r}
+cars_model_disp <- lm(disp ~ cyl + hp + wt, data = cars_data)
+R2_disp <- summary(cars_model_disp)$r.squared
+(VIF_disp <- 1/(1-R2_disp))
 ```
 ## c
 ```{r}
@@ -88,13 +90,14 @@ step(mo.p)
 ```
 ## c
 ```{r}
-moma.p <- model.matrix(mo.p)[,-1]
-adju <- leaps(moma.p, prostate$lpsa, method="adjr2")
+x = prostate[, 1:8]
+y = prostate[, 9]
+adju <- leaps(x, y, method="adjr2")
 maxadjr(adju, 10)
 ```
 ## d
 ```{r}
-mallows <-leaps(moma.p, prostate$lpsa)
+mallows <-leaps(x, y)
 Cpplot(mallows)
 ```
 # Exercise 3
@@ -140,6 +143,7 @@ selected.vars
 ```{r}
 lm.sim.sel <- lm(Y ~ X[,selected.vars]) # Linear regression with only three variables
 summary(lm.sim.sel)
+coef(summary(lm.sim))[c('X33', 'X37', 'X24'),4]
 ```
 ## c
 ```{r}
@@ -157,9 +161,9 @@ summary(lm.sim.sel1)
 ```{r}
 b2 <- regsubsets(Y ~ ., data=mydata, nbest=1, nvmax=100, intercept=TRUE, method=c("forward"), really.big=TRUE)
 rs2 <- summary(b2)
-plot(2:101,rs2$cp,xlab="No of parameters",ylab="Cp statistic")
+plot(2:101,rs2$cp,xlab="p",ylab="Cp statistic")
 abline(a=0, b=1)
-(1:length(rs2$cp))[rs2$cp==min(rs2$cp)]
+which.min(rs2$cp)
 ```
 ## e
 ```{r}
@@ -205,19 +209,14 @@ plot(Cp ~ predictors, type="l", lty = 2, lwd = 2)
 plot(BIC ~ predictors, type="l", lty = 2, lwd = 2)
 
 which.max(results$adjr2)
-which.min(results$bic)
 which.min(results$cp)
+which.min(results$bic)
 
-
-#coef(best_subset, which.max(results$adjr2))
-#coef(best_subset, which.min(results$bic))
-#coef(best_subset, which.min(results$cp))
 ```
 ## c
 ```{r}
 # Selected 4-variables
 (selected_variables <- colnames(results$outmat)[results$outmat[4,]=="*"])
-
 lm_training_hitters <- lm(Salary ~ Runs + CAtBat + CHits + PutOuts, data = train)
 summary(lm_training_hitters)
 ```
@@ -231,6 +230,6 @@ plot(predictions_hitters ~ test$Salary,
 abline(a=0, b=1, col="red")
 
 # computing model performance metrics
-(R2 <- R2(predictions_hitters, test$Salary))
+(corr <- cor(predictions_hitters, test$Salary))
 (RMSE <- RMSE(predictions_hitters, test$Salary))
 ```

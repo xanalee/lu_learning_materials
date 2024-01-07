@@ -1,0 +1,147 @@
+---
+title: "Practical11"
+author: "Xiang Li"
+date: "2023/12/12"
+output: pdf_document
+---
+# Exercise 1
+## a
+```{r}
+bonemarrow = read.csv('bonemarrow.csv')
+```
+```{r}
+model.lr1 = glm(agvhd~agerec, family=binomial, data=bonemarrow)
+summary(model.lr1)
+```
+```{r}
+plot(x = bonemarrow$agerec, y = model.lr1$fitted.values, type = 'p', xlab = 'agerec', ylab = 'predicted probability')
+```
+## b
+```{r}
+# first calculate logit with standard error
+logit <- predict(model.lr1, se.fit = TRUE)
+# lowerbound 95% confidence interval logit
+logit.lwb <- logit$fit-1.96*logit$se.fit
+# upperbound 95% confidence interval logit
+logit.upb <- logit$fit+1.96*logit$se.fit
+# lowerbound 95% confidence interval pred
+pred.lwb <- exp(logit.lwb)/(1+exp(logit.lwb))
+# upperbound 95% confidence interval pred
+pred.upb <- exp(logit.upb)/(1+exp(logit.upb))
+plot(bonemarrow$agerec, model.lr1$fitted.values, xlab="agerec", ylab="predicted probability", ylim=c(0,0.60))
+points(bonemarrow$agerec,pred.lwb, col=2)
+points(bonemarrow$agerec,pred.upb, col=2)
+```
+## c
+```{r}
+bonemarrow$agerec2 <- bonemarrow$agerec**2
+model.lr2 <- glm(agvhd~agerec+agerec2, family=binomial, data=bonemarrow)
+summary(model.lr2)
+plot(bonemarrow$agerec2, model.lr2$fitted.values, type = 'p', xlab="agerec2", ylab="predicted probability")
+```
+## d
+```{r}
+plot(x = bonemarrow$agedon, y = bonemarrow$agerec, type = 'p', xlab = 'agedon', ylab = 'agerec')
+```
+## e
+```{r}
+model.lr3 <- glm(agvhd~agerec+agedon, family=binomial, data=bonemarrow)
+summary(model.lr3)
+```
+## f
+```{r}
+model.lr4 <- glm(agvhd~agedon + as.factor(diag), family=binomial, data=bonemarrow)
+summary(model.lr4)
+```
+```{r}
+plot(bonemarrow$agedon, model.lr4$fitted.values, xlab="agedon", ylab="predicted probability", col=bonemarrow$diag)
+legend("topright", legend = unique(bonemarrow$diag), col = unique(bonemarrow$diag), pch = 1)
+```
+
+## g
+```{r}
+model.lr5 <- glm(agvhd~agedon+ as.factor(diag) +sexdon + sexrec, family=binomial, data=bonemarrow)
+summary(model.lr5)
+```
+## h
+```{r}
+# Likelihood ratio test
+lr_stat <-  -2 * (logLik(model.lr4) - logLik(model.lr5))
+#Calculate the difference in number of parameters.
+df <- df.residual(model.lr4) - df.residual(model.lr5)
+#Calculate the p-value using the chi-square distribution:
+p_value <- 1 - pchisq(lr_stat, df)
+p_value
+```
+## i
+```{r}
+model.lr6 <- glm(agvhd~agedon+ as.factor(diag) +sexdon + sexrec + sexdon*sexrec, family=binomial, data=bonemarrow)
+summary(model.lr6)
+```
+## j
+```{r}
+bonemarrow$mismatch <- abs(bonemarrow$sexdon-bonemarrow$sexrec)
+table(bonemarrow$mismatch)
+```
+```{r}
+model.lr7 <- glm(agvhd~agedon+as.factor(diag)+mismatch, family=binomial, data=bonemarrow)
+summary(model.lr7)
+```
+## k
+```{r}
+initial_model.lr <- glm(agvhd~agedon+ agerec+ as.factor(diag) +sexdon+sexrec+mismatch, family
+=binomial, data=bonemarrow)
+stepwise_model.lr <- step(initial_model.lr, direction = "both")
+```
+```{r}
+summary(stepwise_model.lr)
+```
+## i
+```{r}
+plot(hatvalues(stepwise_model.lr))
+bonemarrow$hatvalues <- hatvalues(stepwise_model.lr)
+```
+
+# Exercise 2
+## b
+```{r}
+nsim<-100000
+set.seed(2468)
+probX <- 0.5
+X <- rbinom(n=nsim, size=1,prob=probX)
+probY <- 0.01 + 0.05*X
+Y<-rbinom(n=nsim, size=1, prob=probY)
+out <- cbind(X,Y)
+cohort<-data.frame(out)
+tab = table(cohort)
+tab_pro = proportions(tab, "X")
+```
+```{r}
+pi0_hat = tab_pro[1, 2]
+pi1_hat = tab_pro[2, 2]
+(risk_diff = pi1_hat - pi0_hat)
+(re_risk = pi1_hat / pi0_hat)
+(odds_ratio = (pi1_hat/(1-pi1_hat))/(pi0_hat/(1-pi0_hat)))
+```
+## c
+```{r}
+# Select all cases
+cases <- cohort[cohort$Y ==1, ]
+# and  1% of controls
+select <- rbinom(n=nsim, size=1, prob=0.01)
+controls <- cohort[cohort$Y ==0 & select==1, ]
+case.control <- rbind(cases,controls)
+```
+## d
+```{r}
+tab2 = table(case.control)
+tab_pro2 = proportions(tab2, "X")
+tab_pro2
+```
+```{r}
+pi0_hat2 = tab_pro2[1, 2]
+pi1_hat2 = tab_pro2[2, 2]
+(risk_diff2 = pi1_hat2 - pi0_hat2)
+(re_risk2 = pi1_hat2 / pi0_hat2)
+(odds_ratio2 = (pi1_hat2/(1-pi1_hat2))/(pi0_hat2/(1-pi0_hat2)))
+```

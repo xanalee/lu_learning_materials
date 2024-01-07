@@ -28,8 +28,8 @@ tomtype <- as.factor(c(rep("round",4), rep("beef",4), rep("cherry",4)))
 
 # one-way ANOVA model
 Tastemodel <- lm(taste ~ tomtype)
-a = anova(Tastemodel)
-a
+summary(Tastemodel)
+anova(Tastemodel)
 ```
 ```{r}
 # this is what happens when you do not introduce

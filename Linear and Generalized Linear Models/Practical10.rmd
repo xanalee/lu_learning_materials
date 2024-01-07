@@ -1,0 +1,72 @@
+---
+title: "Practical10"
+author: "Xiang Li"
+date: "2023/12/11"
+output: pdf_document
+---
+# Exercise 1
+## a
+```{r}
+ova = read.csv("ova.csv")
+tab = xtabs(~figo+death, data=ova)
+tab
+```
+## b
+```{r}
+# calculate row proportions
+proptab <- proportions(tab, "figo")
+proptab
+# and perform a chi-square test
+chi2test <- chisq.test(tab)
+chi2test
+```
+## d
+```{r}
+model.lr1 <- glm(death~figo, family=binomial, data=ova)
+summary(model.lr1)
+```
+```{r}
+exp(model.lr1$coefficients['figo'])
+```
+## f
+```{r}
+exp(c(model.lr1$coefficients['figo']-qnorm(0.975)*0.3161, model.lr1$coefficients['figo']+qnorm(0.975)*0.3161))
+exp(confint.default(model.lr1))
+```
+## g
+```{r}
+exp(confint(model.lr1))
+```
+## h,i
+```{r}
+model.lr2 <- glm(death~diameter, family=binomial, data=ova)
+summary(model.lr2 )
+```
+```{r}
+exp(model.lr2$coefficients['diameter'])
+```
+## j
+```{r}
+predict.glm(model.lr2, newdata = data.frame(diameter=5), type = 'response')
+plot(x = ova$diameter, y = model.lr2$linear.predictors, type = 'p', col = 'red', pch = 'o', xlab = 'diameter', ylab = 'logit')
+plot(x = ova$diameter, y = model.lr2$fitted.values, type = 'p', col = 'blue', pch = '-', xlab = 'diameter', ylab = 'probability')
+```
+
+## k
+```{r}
+tab = xtabs(~ascites+death, data=ova)
+proportions(tab, "ascites")
+```
+## l
+```{r}
+model.lr3 <- glm(death~as.factor(ascites), family=binomial, data=ova)
+summary(model.lr3)
+exp(0.99853)/(1+exp(0.99853))
+exp(0.99853-0.78495)/(1+exp(0.99853-0.78495))
+exp(0.99853+0.02598)/(1+exp(0.99853+0.02598))
+```
+## n
+```{r}
+model.lr4 <- glm(death~as.factor(ascites)+ karn+figo+diameter, family=binomial, data=ova)
+summary(model.lr4)
+```

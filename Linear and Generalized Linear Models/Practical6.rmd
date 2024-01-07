@@ -10,17 +10,15 @@ pkgs <- rownames(installed.packages())
 if(!"EnvStats" %in% pkgs) install.packages("EnvStats")
 if(!"car" %in% pkgs) install.packages("car")
 if(!"faraway" %in% pkgs) install.packages("faraway")
-```
-```{r}
+
 library(EnvStats)
 library(car)
 library(faraway)
 ```
-# Exercise 1.
+# Exercise 1
 ## a
 ```{r}
 lime <- read.table("lime.prn", header=T)
-head(lime)
 limeAL <- lime[lime$lime =="AL",]
 #Linear regression model
 mr <- lm(ph ~ rate, data=limeAL)
@@ -30,22 +28,26 @@ anova(mr)
 plot(ph ~ rate, data=limeAL)
 abline(mr)
 ```
+## b
 ```{r}
- #Now check the ANOVA model
- ma <- lm(ph ~ as.factor(rate), data=limeAL)
- #Anova table for the one-way Anova  model
- anova(ma)
- #Compare two models.
- #Compare the outputs of the individual models
- anova(mr,ma)
+#Now check the ANOVA model
+ma <- lm(ph ~ as.factor(rate), data=limeAL)
+#Anova table for the one-way Anova  model
+sumary(ma)
+anova(ma)
+```
+```{r}
+#Compare two models.
+#Compare the outputs of the individual models
+anova(mr,ma)
 ```
 ```{r}
 #Pure error variance estimate
 (sigmaPE <- deviance(ma)/ma$df.residual)
 (sdPE <- sqrt(sigmaPE))
 ```
-# Exercise 2.
-## a.
+# Exercise 2
+## a
 ```{r}
 x <- c(125,100,200,75,150,175,75,175,125,200,100)
 y <- c(160,112,124,28,152,156,42,124,150,104,136)
@@ -54,33 +56,41 @@ summary(RegModel)
 plot(y ~ x)
 abline(RegModel)
 ```
+## b
 ```{r}
 #Now check the ANOVA model
 AnModel <- lm(y ~ as.factor(x))
+summary(AnModel)
 #Compare two models.
 anova(RegModel,AnModel)
 ```
+## c
 ```{r}
 anovaPE(RegModel)
-
-(sigmaPE <- deviance(ma)/ma$df.residual)
+```
+## d
+```{r}
+(sigmaPE <- deviance(AnModel)/AnModel$df.residual)
 (sdPE <- sqrt(sigmaPE))
+(deviance(RegModel)-deviance(AnModel))/(RegModel$df.residual-AnModel$df.residual)/(deviance(AnModel)/AnModel$df.residual)
 ```
 # Exercise 3
+## a
 ```{r}
 g <- lm(total ~ expend + salary + ratio + takers, data=sat)
 summary(g)
 ```
+## b
 ```{r}
 X <- model.matrix(g)
 H <- X%*%solve(t(X)%*%X)%*%t(X)
-levs <- diag(H)
+levs1 <- diag(H)
 #Easier way to get the hat values
-levs <- lm.influence(g)$hat
+levs2 <- lm.influence(g)$hat
 k <- dim(X)[2]-1 # Number of predictors
- n <- dim(sat)[1]
+n <- dim(sat)[1]
 (avLev <- (k+1)/n)
-mean(levs)
+mean(levs2)
 ```
 ```{r}
 cutoff1 <- 2*mean(levs)
@@ -88,13 +98,19 @@ cutoff2 <- 3*mean(levs)
 levs[levs>cutoff1]
 levs[levs>cutoff2]
 ```
+## d
 ```{r}
 stRes <- rstudent(g)
 cutoff_res <- 2
 stRes[abs(stRes) > cutoff_res]
+```
+```{r}
 plot(rstudent(g) ~ g$fitted)
 abline(h=2)
 abline(h=-2)
+```
+## e
+```{r}
 # Bonferoni outlier test
 outlierTest(g)
 ```
@@ -105,29 +121,32 @@ cutoff_cook <- 4/(n-k-1)
 plot(cdist) # index plot
 abline(h=cutoff_cook)
 cdist[cdist > cutoff_cook]
-
+```
+```{r}
 #Obtain the standardized residuals
 standard_res <- rstandard(g)
 # Another way of calculating the Cook's distance
-cdist1 <- (standard_res^2 / (k+1)) *(levs / (1-levs))
+cdist1 <- (standard_res^2 / (k+1)) *(levs1 / (1-levs1))
 cbind(cdist, cdist1)
 sum((cdist - cdist1)^2)
 ```
+## g
 ```{r}
 satNew <- sat[! (rownames(sat) %in% c(names(cdist[cdist > cutoff_cook]))),]
 gNew <- lm(total ~ expend + salary + ratio + takers, data=satNew)
 summary(gNew)
 ```
+## h
 ```{r}
 DFFITS_val <- stRes* sqrt(levs / (1-levs))
-
-plot(DFFITS_val~levs, xlab = "Hat values", ylab = "Dffits")
+plot(DFFITS_val~levs1, xlab = "Hat values", ylab = "Dffits")
 cutoff_dfit <- 2*sqrt(k/n)
-DFFITS_val[abs(DFFITS_val)>cutoff_dfit]
 abline(h=cutoff_dfit)
+DFFITS_val[abs(DFFITS_val)>cutoff_dfit]
 ```
+## i
 ```{r}
-covratio_i <- 1/((1-levs)*((n-k-2+stRes^2)/(n-k-1))^(k+1))
+covratio_i <- 1/((1-levs1)*((n-k-2+stRes^2)/(n-k-1))^(k+1))
 #covratio_i <- covratio(g)
 plot(covratio_i, xlab = "Hat values", ylab = "Dffits")
 abline(h=1)
