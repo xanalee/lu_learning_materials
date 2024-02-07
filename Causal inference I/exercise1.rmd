@@ -1,0 +1,26 @@
+---
+title: "exercise1"
+author: "Xiang Li"
+date: "2024/2/6"
+output: pdf_document
+---
+# Exercise 2
+```{r}
+data <- data.frame(
+id = 1:10,
+y_chocolate = c(4, 4, 6, 5, 6, 5, 6, 7, 5, 6),
+y_vanilla = c(1, 3, 4, 5, 5, 6, 8, 6, 3, 5) )
+```
+## 2a
+```{r}
+data$causal_eff = data$y_chocolate - data$y_vanilla
+```
+## 2d
+```{r}
+apply(data[,2:4], 2, FUN = mean)
+```
+# Exercise 3
+## 3a
+```{r}
+data$obs_y = apply(data[,2:3], 1, FUN = max)
+```
