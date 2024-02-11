@@ -1,0 +1,221 @@
+---
+title: "Practical 1:  Introduction to Repeated Measurements"
+output: 
+  learnr::tutorial:
+    allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+library("learnr")
+load("ghwide.RData")
+knitr::opts_chunk$set(echo = FALSE)
+options(tutorial.exercise.timelimit = 1200)
+
+
+data.long <- reshape(data., idvar = "patient", 
+                     varying = cbind("dh0", "dh6", "dh12"), 
+                     direction = "long", times = c(0, 6, 12), 
+                     timevar = "Period", v.names = "Growth")
+data.long$TreatOrder <- factor(data.$group, 
+                              levels = c("GH-placebo", "placebo-GH"))
+data.long$sex <- factor(data.$sex, levels = 1:2, 
+                           labels = c("Male", "Female"))
+data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
+data.long <- data.long[order(data.long$patient, data.long$Period), ]
+head(data.long)
+
+# Completers only
+completers <- data.[complete.cases(data.), "patient"]
+data.long.c <- data.long[data.long$patient %in% completers, ]
+
+```
+
+
+## Exercises
+
+The purpose of this practical is to show you basic data management and visualization steps in R for repeated measurements datasets.
+
+The following questions are based on the Growth Hormone study: Hokken and Stijnen et al. (Lancet 1991) report results of a placebo controlled, double blind, *cross-over* trial of growth hormone treatment in pre-pubertal children with chronic renal failure. Twenty children were treated during 6 months with growth hormone and during 6 months with placebo, in random order. Four patients had a missing second period because of a renal transplantation after the first period.
+
+
+This dataset is available as object `data.` and is already loaded in this session. From this dataset we will use the following variables:
+
+- `PATIENT`: patient number.
+
+- `DH0`: growth (cm) in 6 months before randomization.
+
+- `DH6`: growth (cm) in first treatment period, i.e., at 6 months after randomization.
+
+- `DH12`: growth (cm) in second treatment period, i.e., at 12 months after randomization.
+
+- `GROUP`: order of treatments (1=GH-placebo; 2=placebo-GH).
+
+- `age`: baseline age.
+
+- `SEX`: 1 = male, 2 = female.
+
+### Question 1
+
+
+There are three growth measurements for each child. Print the first rows of the `data.` dataset using the function `head(.)`. Transform the data into long format and name it `data.long`. Convert the categorical variables into factors using the names: `TreatOrder`, `sex` and `Period.f`. 
+
+
+```{r P1, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P1-hint-1}
+# Print the top 6 rows of data. using the function head(.). 
+head(data.)
+# Use then the function reshape(.) to bring data into long format. 
+# Use ?reshape to study the arguments you need to specify.
+```
+
+```{r P1-hint-2}
+# The code for the data-management is:
+data.long <- reshape(data., idvar = "patient", 
+                     varying = cbind("dh0", "dh6", "dh12"), 
+                     direction = "long", times = c(0, 6, 12), 
+                     timevar = "Period", v.names = "Growth")
+data.long$TreatOrder <- factor(data.$group, 
+                              levels = c("GH-placebo", "placebo-GH"))
+data.long$sex <- factor(data.$sex, levels = 1:2, 
+                           labels = c("Male", "Female"))
+data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
+data.long <- data.long[order(data.long$patient, data.long$Period), ]
+head(data.long)
+```
+
+
+
+### Question 2
+In the first part of the exercise we will not use the multivariate model yet. The aim of this exercise is to practice descriptive methods for repeated measurements . In practical 2, we will analyse this dataset with repeated measurements methods. 
+
+
+Using the `data.long` dataset you created in Question 1, create a table with descriptive statistics for growth (mean and variance) by period and treatment order group. 
+
+```{r P2-setup}
+data.long <- reshape(data., idvar = "patient", 
+                     varying = cbind("dh0", "dh6", "dh12"), 
+                     direction = "long", times = c(0, 6, 12), 
+                     timevar = "Period", v.names = "Growth")
+data.long$TreatOrder <- factor(data.$group, 
+                              levels = c("GH-placebo", "placebo-GH"))
+data.long$sex <- factor(data.$sex, levels = 1:2, 
+                           labels = c("Male", "Female"))
+data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
+data.long <- data.long[order(data.long$patient, data.long$Period), ]
+```
+
+```{r P2, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P2-hint-1}
+# Mean and variance per group order and period
+with(data.long, tapply(Growth, list(Period.f, TreatOrder), 
+                       mean, na.rm = TRUE))
+with(data.long, tapply(Growth, list(Period.f, TreatOrder), 
+                       var, na.rm = TRUE))
+```
+
+Then do the same using only the patients with data on both periods (i.e., completers). So create a subset of `data.long` that contains only the completers and name it `data.long.c`.  Do you see some indication of a treatment effect? Do you see some indication of a placebo effect?
+
+
+```{r P21, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P21-hint-1}
+# Completers only
+completers <- data.[complete.cases(data.), "patient"]
+data.long.c <- data.long[data.long$patient %in% completers, ]
+```
+
+```{r P21-hint-2}
+# Mean and variance per group order and period for completers
+with(data.long.c, tapply(Growth, list(Period.f, TreatOrder), 
+                         mean, na.rm = TRUE))
+with(data.long.c, tapply(Growth, list(Period.f, TreatOrder),
+                         var, na.rm = TRUE))
+```
+
+
+```{r P21-hint-3}
+# There is indeed indication for a treatment effect 
+# if we study growth in time per treatment order group. 
+# We compare the mean at 6 months with the mean at 12 months 
+# in each treatment order group. 
+# There is a placebo effect because in the placebo-GH group 
+# there is an increase in growth at 6 months whereas 
+# in the GH-placebo group the mean growth at 12 months 
+# gets back at the baseline level.
+```
+
+
+
+### Question 3
+
+Now we are going to make some plots to describe the data. For this part of the exercise we are still using only the patients with measurements on both periods (i.e., completers).  So will use the `data.long.c` created above.
+
+- Make a "spaghetti plot" showing the profiles of all 20 patients. 
+
+- Repeat the same but now with two panels corresponding to the two treatment order groups. 
+
+- Make a plot showing the mean growth per period in the two groups. What do you observe?
+
+
+*Hint:* You may use the function `xyplot(.)` from the package `lattice`. 
+ Use `?xyplot` to learn more about its arguments and see other examples. 
+
+```{r P3-setup}
+data.long <- reshape(data., idvar = "patient", 
+                     varying = cbind("dh0", "dh6", "dh12"), 
+                     direction = "long", times = c(0, 6, 12), 
+                     timevar = "Period", v.names = "Growth")
+data.long$TreatOrder <- factor(data.$group, 
+                              levels = c("GH-placebo", "placebo-GH"))
+data.long$sex <- factor(data.$sex, levels = 1:2, 
+                           labels = c("Male", "Female"))
+data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
+data.long <- data.long[order(data.long$patient, data.long$Period), ]
+
+# Completers only
+completers <- data.[complete.cases(data.), "patient"]
+data.long.c <- data.long[data.long$patient %in% completers, ]
+```
+
+```{r P3, exercise=TRUE, exercise.lines = 20}
+
+```
+
+
+```{r P3-hint-1}
+# The code is:
+library(lattice)
+# Plot individual profiles
+xyplot(Growth ~ Period.f, groups = patient, data = data.long.c, 
+       xlab = "Period (months)", ylab = "Growth (cm)", type = "l")
+```
+
+```{r P3-hint-2}
+# The code is:
+# Plot individual profiles per treatment order group
+xyplot(Growth ~ Period.f | TreatOrder, groups = patient, 
+       data = data.long.c, 
+       xlab = "Period (months)", ylab = "Growth (cm)", type = "l")
+```
+
+```{r P3-hint-3}
+# The code is:
+# Plot mean growth per period and per treatment order group
+xyplot(Growth ~ Period.f | TreatOrder, data = data.long.c,
+       xlab = "Visits", ylab = "Mean growth (cm)",
+       panel = function(x, y) {
+            panel.average(x, y, horizontal = FALSE, col = "blue")
+       })
+```
+
+
