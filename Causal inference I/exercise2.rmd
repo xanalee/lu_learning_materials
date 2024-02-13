@@ -1,0 +1,6 @@
+---
+title: "exercise2"
+author: "Xiang Li"
+date: "2024/2/13"
+output: pdf_document
+---
