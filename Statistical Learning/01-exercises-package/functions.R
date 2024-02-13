@@ -41,10 +41,10 @@ make_ex_1 = function(beta = .1, n_train = 50) {
   boxplot(beta_hats, xlab = "shrinkage", ylab = "beta_hat", outline = FALSE)
   lines(c(1, 11), c(beta, beta), col = "red")
   ## Compute variance of the estimates
-  bias_est = colMeans(mse)
   var_est = round(apply(beta_hats, 2, var), digits = 3)
-  epe_est = bias_est + var_est
-  return(list(optimal_s = shrinkage[min_id], bias = bias_est, var = var_est, epe = epe_est))
+  return(list(optimal_s = shrinkage[min_id], var = var_est))
 }
 result1 = make_ex_1()
 result2 = make_ex_1(n_train = 100)
+result3 = make_ex_1(beta = 0.2, n_train = 100)
+print(1)

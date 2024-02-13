@@ -1,0 +1,494 @@
+---
+title: "Lecture 2 - Template to for lecture"
+subtitle: "Data Visualisation "
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 4, fig.height= 3)
+library(ggplot2)
+```
+
+# Datasets
+
+#### Dataset: Motor Trend, 1974 
+
+- data on 32 cars
+- available in R
+
+
+Number of cylinders and weight varies per car:
+```{r}
+summary(mtcars[,c("cyl", "wt")])
+```
+
+We can look at the relationship between the car's displacement and its fuel efficiency: 
+
+```{r}
+plot(x = mtcars$disp, y = mtcars$mpg)
+```
+
+#### Dataset: Tech stocks
+
+- stock data for four tech companies
+- available via Brightspace as .rda file (Lecture 2 - Datasets)
+
+
+```{r}
+load("tech_stocks.rda")
+stocks <- as.data.frame(tech_stocks)
+stocks$date <- as.Date(stocks$date, 
+                       format = "%y-%m-%d")
+```
+
+Summary of the data:
+
+```{r}
+summary(stocks)
+```
+
+
+# ggplot2 basics
+
+
+#### ggplot function
+
+- package: ggplot2
+- main function: ggplot
+- asks for "data" and "mapping"
+
+```{r, warning = FALSE}
+# install.packages("ggplot2")
+library(ggplot2)
+ggplot
+```
+
+Only data: 
+```{r}
+ggplot(data = mtcars)
+```
+
+Scatter plot: 
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point()
+```
+
+Line plot:
+
+```{r}
+stocks_apple <- stocks[which(stocks$company == "Apple"),]
+
+ggplot(data = stocks_apple,
+       mapping = aes(x = date,
+                     y = price_indexed)) + 
+ geom_line()
+```
+
+#### Saving a plot to an object
+
+```{r}
+stocklineplot <- ggplot(
+                    data = stocks_apple,
+                    mapping = aes(x = date,
+                                  y = price_indexed)) + 
+  geom_line()
+
+stocklineplot
+```
+
+#### Saving a plot to a file
+
+```{r}
+ggsave(filename = "Lineplot_stocks.pdf",
+       plot = stocklineplot
+)
+```
+
+
+#### Excercise: Combine graph types and study file format types
+
+1. Make a line graph of the indexed stocks price of Facebook and save it as object.
+2. Add points on the line for each observation.
+3. Save this plot with reasonable dimensions using the following formats: pdf, eps, svg, png, jpeg, tiff. Which are vector types?
+
+```{r}
+
+# your answer here
+
+
+```
+
+# More aesthetics
+
+### Groups, colors, size, etc.
+
+Different line for each group
+
+```{r}
+ggplot(data = stocks,
+       mapping = aes(x = date,
+                     y = price_indexed,
+                     group = company)) + 
+ geom_line()
+```
+
+Different color for each group: 
+
+```{r, eval = FALSE}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = 
+                       as.factor(cyl))) + 
+ geom_point()
+```
+
+### Scales
+
+Scales are used in the background: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = 
+                       as.factor(cyl))) + 
+ geom_point() + 
+  scale_x_continuous() + 
+  scale_y_continuous() + 
+  scale_color_discrete() 
+```
+
+You can make adjustments: 
+
+- to colors: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = 
+                       as.factor(cyl),
+                     shape = 
+                       as.factor(cyl))) + 
+ geom_point() + 
+  scale_color_manual(values = c("#E69F00", 
+                                "#56B4E9", 
+                                "#009E73"))
+```
+
+- to shapes: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = 
+                       as.factor(cyl),
+                     shape = 
+                       as.factor(cyl))) + 
+ geom_point() + 
+  scale_shape_manual(values = c(23,24,25))
+```
+
+
+- to size: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = 
+                       as.factor(cyl),
+                     size = 
+                       as.factor(cyl))) + 
+ geom_point() + 
+  scale_size_manual(values = c(3,4,5))
+```
+
+
+Or make changes that are independent of the data: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     shape = 
+                       as.factor(cyl))) + 
+ geom_point(color = "blue",
+            size = 2)
+```
+
+
+
+### Exercise: adjust scales for redundant coding
+
+Make a line graph about the stocks data withe redundant coding.
+
+For each company: 
+
+- different line type
+- different color (red, blue, yellow, green)
+
+```{r}
+
+# put your answer here
+
+```
+
+
+#### Exercise: gradient coloring
+
+Make a scatter plot of the mtcars data 
+
+For each observation: 
+
+- indicate the power (hp) with a color gradient:
+- yellow for low values, purple for high values.
+
+```{r}
+
+# put your answer here
+
+```
+
+# Plot design
+
+### Axis labels and titles
+
+Using individual functions:
+
+```{r}
+ggplot(data = stocks,
+       mapping = aes(x = date,
+                     y = price_indexed,
+                     color = company)) + 
+ geom_line() + 
+  xlab("Year") + 
+  ylab("Stock price, indexed") + 
+  ggtitle("Stock price over time")
+```
+
+Using labs():
+
+```{r}
+ggplot(data = stocks,
+       mapping = aes(x = date,
+                     y = price_indexed,
+                     color = company)) + 
+ geom_line() + 
+ labs(
+   x = "Year",
+   y = "Stock price, indexed",
+   title = "Stock price over time",
+   subtitle = "of major tech companies",
+   caption = "Data: Yahoo Finance",
+   tag = "Fig. 1"
+ )
+```
+
+
+### Legends
+
+Guide functions are used in the background:
+
+- discrete color scale:
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     color = 
+                       as.factor(cyl))) + 
+ geom_point() +
+ guides(color = guide_legend()) # discrete 
+```
+
+- continuous color scale
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     color = hp)) + 
+ geom_point() +
+ guides(color = guide_colorbar()) # continuous
+```
+
+You can change guides: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     color = hp)) + 
+ geom_point() +
+ guides(color = guide_colorbar(
+   title = "power (hp)",
+   barwidth = 4,
+   ticks = FALSE,
+   label.position = "left",
+   title.position = "bottom"))
+```
+
+And also change settings for multiple guides: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     color = hp,
+                     shape = 
+                       as.factor(cyl))) + 
+ geom_point() +
+ guides(color = guide_colorbar(order = 1),
+        shape = guide_legend(order = 2))
+```
+
+### Exercise: change the axis labels and legends
+
+Make the plot on the slides: 
+
+```{r}
+# your answer here
+
+
+```
+
+
+### Themes
+
+There are many different themes that you can set globally: 
+
+```{r}
+theme_set(theme_minimal()) # default theme
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point()
+```
+
+or locally: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point() + 
+  theme_minimal()
+```
+
+You can make changes to the theme: 
+
+- change the font: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point() + 
+ theme(text = 
+         element_text(family = "Courier"))
+```
+
+- change the grid lines: 
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point() + 
+ theme(panel.grid.major = 
+         element_line(colour = "blue"))
+```
+
+
+#### Exercise: choose theme + put the legend at the top
+
+Make plot on the slides
+
+```{r}
+# Add your code: 
+
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     size = wt, shape = as.factor(cyl))) + 
+ geom_point() 
+```
+
+
+Let's go back to the default theme: 
+
+```{r}
+theme_set(theme_grey()) # default theme
+```
+
+### Multiple plots
+
+#### Facet: split a plot into multiple plots based on one or more discrete variables
+
+Example: a column for each cylinder size:
+
+
+```{r}
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg)) + 
+ geom_point() + 
+  facet_grid(cols = vars(cyl))
+  
+```
+
+
+#### Several plots together in one grid
+
+We recommend to use the package "patchwork" as it is very flexible
+
+Suppose we have two plots: 
+
+```{r}
+scatterplot_cars <- ggplot(data = mtcars,
+                          mapping = aes(x = disp,
+                                        y = mpg,
+                                        color = as.factor(cyl))) + 
+ geom_point()
+
+lineplot_stocks <- ggplot(data = stocks,
+                          mapping = 
+                            aes(x = date,
+                                y = price_indexed,
+                                color = company)) + 
+  geom_line()
+
+```
+
+
+Then you can easily combine them using the patchwork package: 
+
+```{r,  fig.width = 10}
+# install.packages("patchwork")
+library(patchwork) 
+
+patchwork <- scatterplot_cars + lineplot_stocks
+patchwork
+```
+
+
+
+
+# Final exercise: put many things together!
+
+Mimic figure 2.5 from the book as closely as possible
+
+```{r}
+
+# Some code to start with; add the extra code
+
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     color = hp,
+                     shape = 
+                       as.factor(cyl))) + 
+ geom_point() 
+
+```
+
