@@ -25,7 +25,7 @@ summary(mtcars[,c("cyl", "wt")])
 We can look at the relationship between the car's displacement and its fuel efficiency: 
 
 ```{r}
-plot(x = mtcars$disp, y = mtcars$mpg)
+plot(x = mtcars$disp, y = mtcars$mpg, type = 'p')
 ```
 
 #### Dataset: Tech stocks
@@ -35,7 +35,7 @@ plot(x = mtcars$disp, y = mtcars$mpg)
 
 
 ```{r}
-load("tech_stocks.rda")
+load("DV_Lecture2_TemplateAndData/tech_stocks.rda")
 stocks <- as.data.frame(tech_stocks)
 stocks$date <- as.Date(stocks$date, 
                        format = "%y-%m-%d")
@@ -226,7 +226,7 @@ ggplot(data = mtcars,
 
 ### Exercise: adjust scales for redundant coding
 
-Make a line graph about the stocks data withe redundant coding.
+Make a line graph about the stocks data with redundant coding.
 
 For each company: 
 
@@ -234,9 +234,14 @@ For each company:
 - different color (red, blue, yellow, green)
 
 ```{r}
-
 # put your answer here
-
+ggplot(data = stocks,
+       mapping = aes(x = date,
+                     y = price_indexed,
+                     linetype = as.factor(company),
+                     color = as.factor(company))) +
+        geom_line() +
+        scale_color_manual(values = c('red', 'blue', 'yellow', 'green'))
 ```
 
 
@@ -250,9 +255,12 @@ For each observation:
 - yellow for low values, purple for high values.
 
 ```{r}
-
 # put your answer here
-
+ggplot(data = mtcars,
+       mapping = aes(x = disp,
+                     y = mpg,
+                     color = hp)) +
+ geom_point() + scale_color_gradient(low = 'yellow', high = 'purple')
 ```
 
 # Plot design
@@ -300,8 +308,7 @@ Guide functions are used in the background:
 ```{r}
 ggplot(data = mtcars,
        mapping = aes(x = disp, y = mpg,
-                     color = 
-                       as.factor(cyl))) + 
+                     color = as.factor(cyl))) +
  geom_point() +
  guides(color = guide_legend()) # discrete 
 ```
@@ -350,7 +357,16 @@ Make the plot on the slides:
 
 ```{r}
 # your answer here
-
+ggplot(data = mtcars,
+       mapping = aes(x = disp, y = mpg,
+                     size = wt,
+                     shape = as.factor(cyl))) +
+ geom_point() +
+        labs(x = "displacement(cu.in.)",
+             y = "fuel efficiency (mpg)",
+             title = "Figure with information on cars") +
+ guides(size = guide_legend(title = "weight(1000lbs)", order = 1),
+        shape = guide_legend(title = "cylinders", order = 2))
 
 ```
 
@@ -407,12 +423,13 @@ ggplot(data = mtcars,
 Make plot on the slides
 
 ```{r}
-# Add your code: 
-
+# Add your code:
 ggplot(data = mtcars,
-       mapping = aes(x = disp, y = mpg,
-                     size = wt, shape = as.factor(cyl))) + 
- geom_point() 
+       mapping = aes(x = disp, y = mpg, size = wt, shape = as.factor(cyl))) +
+ geom_point() + labs(x = "displacement(cu.in.)", y = "fuel efficiency (mpg)") +
+ guides(size = guide_legend(title = "weight(1000lbs)", order = 1, label.position = 'top'),
+        shape = guide_legend(title = "cylinders", order = 2, label.position = 'top')) +
+        theme(panel.background = element_rect(fill = NA), panel.grid = element_line(color = 'grey'), legend.position = 'top')
 ```
 
 
@@ -486,8 +503,7 @@ Mimic figure 2.5 from the book as closely as possible
 ggplot(data = mtcars,
        mapping = aes(x = disp, y = mpg,
                      color = hp,
-                     shape = 
-                       as.factor(cyl))) + 
+                     shape = as.factor(cyl))) +
  geom_point() 
 
 ```
