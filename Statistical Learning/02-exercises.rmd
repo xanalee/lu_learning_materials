@@ -1,0 +1,93 @@
+---
+title: "02-exercises"
+author: "Xiang Li"
+date: "2024/2/16"
+output: pdf_document
+---
+```{r}
+library(ISLR)
+library(dplyr)
+library(MASS)
+library(class)
+```
+# 1
+## a)
+```{r}
+Auto = Auto
+Auto = mutate(Auto, mpg01 = as.factor((mpg > median(mpg)) * 1))
+```
+## c)
+```{r}
+set.seed(123)
+train_idx = sample(rep(c(TRUE, FALSE), each = nrow(Auto) / 2), size = nrow(Auto))
+train_set = Auto[train_idx, ]
+test_set = Auto[!train_idx, ]
+```
+## d)
+```{r}
+LDA = lda(mpg01 ~ cylinders+weight+displacement+horsepower, data = train_set)
+LDA_pre = predict(LDA, test_set)
+LDA_er = mean(LDA_pre$class != test_set$mpg01)
+LDA_er
+```
+## e)
+```{r}
+QDA = qda(mpg01 ~ cylinders+weight+displacement+horsepower, data = train_set)
+QDA_pre = predict(QDA, test_set)
+QDA_er = mean(QDA_pre$class != test_set$mpg01)
+QDA_er
+```
+## h)
+```{r}
+set.seed(519)
+train_set_x = train_set[, c('cylinders', 'weight', 'displacement', 'horsepower')]
+test_set_x = test_set[, c('cylinders', 'weight', 'displacement', 'horsepower')]
+knn_er_v = rep(0, 10)
+for (k in 1:10){
+  knn_pre = knn(train_set_x, test_set_x, cl = train_set$mpg01, k = k)
+  knn_er_v[k] = mean(knn_pre != test_set$mpg01)
+}
+plot(x=1:10, y=knn_er_v, type = 'l', xlab = 'k', ylab = 'Predict Error')
+which.min(knn_er_v)
+```
+
+# 2
+```{r}
+cal_performance_metrics = function(y_true, y_pre){
+  n = length(y_true)
+  confuse_mt = matrix(0, nrow = 2, ncol = 2)
+  rownames(confuse_mt) = c('predicted=0', 'predicted=1')
+  colnames(confuse_mt) = c('true=0', 'true=1')
+  TN = confuse_mt[1, 1] = sum((y_pre == 0) & (y_true == 0))
+  FN = confuse_mt[1, 2] = sum((y_pre == 0) & (y_true == 1))
+  FP = confuse_mt[2, 1] = sum((y_pre == 1) & (y_true == 0))
+  TP = confuse_mt[2, 2] = sum((y_pre == 1) & (y_true == 1))
+  acc = (TN + TP)/n
+  sensi = TP/(TP+FN)
+  speci = TN/(TN+FP)
+  pos_pre = TP/(FP+TP)
+  neg_pre = TN/(TN+FN)
+  pm_ls = list(confuse_matrix=confuse_mt, accuracy=acc, sensitivity=sensi, specificity=speci, positive_predictive_value=pos_pre, negative_predictive_value=neg_pre)
+  return(pm_ls)
+}
+```
+```{r}
+cal_performance_metrics(test_set$mpg01, LDA_pre$class)
+```
+```{r}
+cal_performance_metrics(test_set$mpg01, QDA_pre$class)
+```
+```{r}
+knn_pre = knn(train_set_x, test_set_x, cl = train_set$mpg01, k = which.min(knn_er_v))
+cal_performance_metrics(test_set$mpg01, knn_pre)
+```
+
+# 3
+```{r}
+p_result = dnorm(x = 4, mean = 10, sd = 6) * 0.8 / (dnorm(x = 4, mean = 10, sd = 6) * 0.8 + dnorm(x = 4, mean = 0, sd = 6) * 0.2)
+p_result
+```
+# 4
+```{r}
+
+```
