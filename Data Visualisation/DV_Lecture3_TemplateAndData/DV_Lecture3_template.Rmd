@@ -1,0 +1,230 @@
+---
+title: 'Lecture 3: Template for students'
+author: "Sanne JW Willems"
+date: '2023-02-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 4, fig.height= 3)
+library(ggplot2)
+```
+
+# Datasets
+
+```{r}
+library(datasets)
+```
+
+
+#### Dataset: Iris flowers
+
+- data on 3 species of iris flowers
+- available in R as 
+  - wide version: "iris"
+  - long version: "iris_long"
+
+
+Number of cylinders and weight varies per car:
+```{r}
+summary(iris)
+```
+
+```{r}
+head(iris)
+```
+
+```{r}
+library(tidyr)
+
+long_iris <- iris %>% 
+  gather(key= 'part', value = 'value', Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%
+  separate(part,c('part','measure'), sep = '\\.')
+
+summary(long_iris)
+```
+
+
+#### Dataset: Bridges in Pittsburg
+
+- data on bridges in Pittsburg
+- used in the book
+- available via Brightspace as bridges.data.version2
+
+
+```{r}
+bridges <- read.csv("bridges.data.version2", header=FALSE)
+names(bridges) <- c("ID", "River", "Location",
+                    "Erected", "Purpose", "Length",
+                    "Lanes", "Clear", "T-or-D", 
+                    "Material", "Span", "Rel-l",
+                    "Type")
+```
+
+```{r}
+summary(bridges)
+```
+
+Note: we will not use all variables, but focus on the "Erected" and "Material" as is used in the book.
+
+#### Dataset: Internet users in various countries, 1996 - 2016
+
+- used in the book
+- available via Brightspace as internet.rda
+- we will use the data of a selection of countries between 1996 - 2016
+
+```{r}
+load("internet.rda")
+internet <- as.data.frame(internet)
+internet_selection <- internet[which(internet$country %in% c("Iceland",
+                                                             "Norway",
+                                                             "United States",
+                                                             "Canada",
+                                                             "New Zealand",
+                                                             "United Kingdom",
+                                                             "Japan",
+                                                             "Germany",
+                                                             "Israel",
+                                                             "Italy",
+                                                             "France",
+                                                             "Chile",
+                                                             "Brazil",
+                                                             "Argentina",
+                                                             "Mexico",
+                                                             "China",
+                                                             "South Africa",
+                                                             "Algeria",
+                                                             "India",
+                                                             "Kenya") & 
+                                       internet$year > 1996),]
+```
+
+#### Dataset: Voting data USA
+
+
+- available via Brightspace as 1976-2020-president.csv
+- For the example in class, we will only use the data of 2020
+- You will use all data for the challenge
+
+
+```{r}
+votes <- read.csv("1976-2020-president.csv")
+votes_selection <- votes[which(votes$year == 2020),]
+```
+
+# Visualizing amounts
+
+#### Bar charts
+
+With some (ugly) design changes: 
+
+```{r}
+ggplot(data = bridges, 
+       mapping = aes(x = Erected)) +
+  geom_bar(stat = "count",
+           color = "blue",
+           size = 4,
+           fill = "yellow",
+           width = 0.5) + 
+  theme_minimal()
+```
+
+With labels: 
+
+```{r}
+ggplot(data = bridges, 
+       mapping = aes(x = Erected)) +
+  geom_bar(stat = "count") + 
+  geom_text(mapping = aes(
+    label = after_stat(count)),
+            stat = 'count',
+    nudge_y = 2,
+    color = "blue") 
+```
+
+With other statistic and reordering of groups: 
+
+```{r}
+ggplot(data = iris,
+       mapping = aes(x = 
+                       reorder(x = Species,
+                               X = -Sepal.Length, 
+                               FUN = mean), 
+                     y = Sepal.Length)) + 
+geom_bar(stat = "summary",
+         fun = "mean") 
+```
+
+
+
+#### Stacked bar charts
+
+```{r}
+ggplot(data = bridges, 
+       mapping = aes(x = Erected,
+                     fill = Material)) +
+  geom_bar(stat = "count")
+```
+
+#### Grouped bar charts
+
+```{r}
+ggplot(data = bridges, 
+       mapping = aes(x = Erected,
+                     group = Material,
+                     fill = Material)) +
+  geom_bar(stat = "count",
+           position = position_dodge2())
+```
+
+
+#### Dot plots
+
+```{r}
+ggplot(data = iris,
+       mapping = aes(x = Species, 
+                     y = Sepal.Length)) + 
+  geom_point(stat = "summary",
+         fun = "mean") + 
+  ylim(4,8)
+```
+
+
+#### Heat maps
+
+```{r}
+ggplot(data = internet_selection,
+       mapping = aes(x = year, 
+                     y = country,
+                     fill = users)) + 
+  geom_tile() + 
+  theme_minimal()
+
+```
+
+
+# Visualizing proportions
+
+#### Stacked bar
+
+```{r}
+ggplot(data = votes_selection,
+       mapping = aes(x = "", # no split!
+                     fill = party_simplified)) +
+  geom_bar() + 
+  theme_void()
+```
+
+
+#### Pie chart
+
+```{r}
+ggplot(data = votes_selection,
+       mapping = aes(x = "", # no split!
+                     fill = party_simplified)) +
+  geom_bar() + 
+  theme_void() +
+  coord_polar(theta = "y") 
+```
+
+
