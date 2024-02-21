@@ -7,15 +7,12 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.width = 4, fig.height= 3)
-library(ggplot2)
 ```
-
-# Datasets
-
 ```{r}
-library(datasets)
+library(ggplot2)
+library(datasets) # datasets
+library(tidyr)
 ```
-
 
 #### Dataset: Iris flowers
 
@@ -35,11 +32,9 @@ head(iris)
 ```
 
 ```{r}
-library(tidyr)
-
-long_iris <- iris %>% 
-  gather(key= 'part', value = 'value', Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%
-  separate(part,c('part','measure'), sep = '\\.')
+long_iris = separate(
+        gather(iris, key= 'part', value = 'value', Sepal.Length, Sepal.Width, Petal.Length, Petal.Width), part, c('part','measure'),
+        sep = '\\.')
 
 summary(long_iris)
 ```
@@ -53,8 +48,8 @@ summary(long_iris)
 
 
 ```{r}
-bridges <- read.csv("bridges.data.version2", header=FALSE)
-names(bridges) <- c("ID", "River", "Location",
+bridges = read.csv("DV_Lecture3_TemplateAndData/bridges.data", header=FALSE)
+names(bridges) = c("ID", "River", "Location",
                     "Erected", "Purpose", "Length",
                     "Lanes", "Clear", "T-or-D", 
                     "Material", "Span", "Rel-l",
@@ -74,9 +69,9 @@ Note: we will not use all variables, but focus on the "Erected" and "Material" a
 - we will use the data of a selection of countries between 1996 - 2016
 
 ```{r}
-load("internet.rda")
-internet <- as.data.frame(internet)
-internet_selection <- internet[which(internet$country %in% c("Iceland",
+load("DV_Lecture3_TemplateAndData/internet.rda")
+internet = as.data.frame(internet)
+internet_selection = internet[which(internet$country %in% c("Iceland",
                                                              "Norway",
                                                              "United States",
                                                              "Canada",
@@ -108,8 +103,8 @@ internet_selection <- internet[which(internet$country %in% c("Iceland",
 
 
 ```{r}
-votes <- read.csv("1976-2020-president.csv")
-votes_selection <- votes[which(votes$year == 2020),]
+votes = read.csv("DV_Lecture3_TemplateAndData/1976-2020-president.csv")
+votes_selection = votes[which(votes$year == 2020),]
 ```
 
 # Visualizing amounts
@@ -123,7 +118,7 @@ ggplot(data = bridges,
        mapping = aes(x = Erected)) +
   geom_bar(stat = "count",
            color = "blue",
-           size = 4,
+           linewidth = 4,
            fill = "yellow",
            width = 0.5) + 
   theme_minimal()
@@ -132,99 +127,64 @@ ggplot(data = bridges,
 With labels: 
 
 ```{r}
-ggplot(data = bridges, 
-       mapping = aes(x = Erected)) +
+ggplot(data = bridges, mapping = aes(x = Erected)) +
   geom_bar(stat = "count") + 
-  geom_text(mapping = aes(
-    label = after_stat(count)),
-            stat = 'count',
-    nudge_y = 2,
-    color = "blue") 
+  geom_text(mapping = aes(label = after_stat(count)), stat = 'count',
+            nudge_y = 2, color = "blue")
 ```
 
 With other statistic and reordering of groups: 
 
 ```{r}
-ggplot(data = iris,
-       mapping = aes(x = 
-                       reorder(x = Species,
-                               X = -Sepal.Length, 
-                               FUN = mean), 
-                     y = Sepal.Length)) + 
-geom_bar(stat = "summary",
-         fun = "mean") 
+ggplot(data = iris, mapping = aes(x = reorder(x = Species,
+       X = Sepal.Length, FUN = mean, decreasing = TRUE),
+       y = Sepal.Length)) +
+  geom_bar(stat = "summary", fun = "mean")
 ```
 
-
-
 #### Stacked bar charts
-
 ```{r}
-ggplot(data = bridges, 
-       mapping = aes(x = Erected,
-                     fill = Material)) +
+ggplot(data = bridges, mapping = aes(x = Erected, group = Material,
+       fill = Material)) +
   geom_bar(stat = "count")
 ```
 
 #### Grouped bar charts
-
 ```{r}
-ggplot(data = bridges, 
-       mapping = aes(x = Erected,
-                     group = Material,
-                     fill = Material)) +
-  geom_bar(stat = "count",
-           position = position_dodge2())
+ggplot(data = bridges, mapping = aes(x = Erected, group = Material,
+       fill = Material)) +
+  geom_bar(stat = "count", position = position_dodge2())
 ```
 
-
 #### Dot plots
-
 ```{r}
-ggplot(data = iris,
-       mapping = aes(x = Species, 
-                     y = Sepal.Length)) + 
-  geom_point(stat = "summary",
-         fun = "mean") + 
+ggplot(data = iris, mapping = aes(x = Species, y = Sepal.Length)) +
+  geom_point(stat = "summary", fun = "mean") +
   ylim(4,8)
 ```
 
-
 #### Heat maps
-
 ```{r}
-ggplot(data = internet_selection,
-       mapping = aes(x = year, 
-                     y = country,
-                     fill = users)) + 
-  geom_tile() + 
+ggplot(data = internet_selection, mapping = aes(x = year, y = country,
+       fill = users)) +
+  geom_tile() +
   theme_minimal()
-
 ```
 
-
 # Visualizing proportions
-
 #### Stacked bar
-
 ```{r}
-ggplot(data = votes_selection,
-       mapping = aes(x = "", # no split!
-                     fill = party_simplified)) +
+ggplot(data = votes_selection, mapping = aes(x = "", # no split!
+       fill = party_simplified)) +
   geom_bar() + 
   theme_void()
 ```
 
-
 #### Pie chart
-
 ```{r}
-ggplot(data = votes_selection,
-       mapping = aes(x = "", # no split!
-                     fill = party_simplified)) +
+ggplot(data = votes_selection, mapping = aes(x = "", # no split!
+       fill = party_simplified)) +
   geom_bar() + 
   theme_void() +
   coord_polar(theta = "y") 
 ```
-
-
