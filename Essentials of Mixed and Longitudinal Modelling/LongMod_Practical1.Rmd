@@ -8,28 +8,27 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 rm(list=ls())
-library("learnr")
+library(learnr)
 load("ghwide.RData")
 knitr::opts_chunk$set(echo = FALSE)
 options(tutorial.exercise.timelimit = 1200)
-
-
-data.long <- reshape(data., idvar = "patient", 
-                     varying = cbind("dh0", "dh6", "dh12"), 
-                     direction = "long", times = c(0, 6, 12), 
+```
+```{r}
+data.long = reshape(data., idvar = "patient",
+                     varying = cbind("dh0", "dh6", "dh12"),
+                     direction = "long", times = c(0, 6, 12),
                      timevar = "Period", v.names = "Growth")
-data.long$TreatOrder <- factor(data.$group, 
+data.long$TreatOrder = factor(data.$group,
                               levels = c("GH-placebo", "placebo-GH"))
-data.long$sex <- factor(data.$sex, levels = 1:2, 
+data.long$sex = factor(data.$sex, levels = 1:2,
                            labels = c("Male", "Female"))
-data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
-data.long <- data.long[order(data.long$patient, data.long$Period), ]
+data.long$Period.f = factor(data.long$Period, levels = c(0, 6, 12))
+data.long = data.long[order(data.long$patient, data.long$Period), ]
 head(data.long)
 
 # Completers only
-completers <- data.[complete.cases(data.), "patient"]
-data.long.c <- data.long[data.long$patient %in% completers, ]
-
+completers = data.[complete.cases(data.), "patient"]
+data.long.c = data.long[data.long$patient %in% completers, ]
 ```
 
 
@@ -75,16 +74,16 @@ head(data.)
 
 ```{r P1-hint-2}
 # The code for the data-management is:
-data.long <- reshape(data., idvar = "patient", 
+data.long = reshape(data., idvar = "patient", 
                      varying = cbind("dh0", "dh6", "dh12"), 
                      direction = "long", times = c(0, 6, 12), 
                      timevar = "Period", v.names = "Growth")
-data.long$TreatOrder <- factor(data.$group, 
+data.long$TreatOrder = factor(data.$group, 
                               levels = c("GH-placebo", "placebo-GH"))
-data.long$sex <- factor(data.$sex, levels = 1:2, 
+data.long$sex = factor(data.$sex, levels = 1:2, 
                            labels = c("Male", "Female"))
-data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
-data.long <- data.long[order(data.long$patient, data.long$Period), ]
+data.long$Period.f = factor(data.long$Period, levels = c(0, 6, 12))
+data.long = data.long[order(data.long$patient, data.long$Period), ]
 head(data.long)
 ```
 
@@ -97,16 +96,16 @@ In the first part of the exercise we will not use the multivariate model yet. Th
 Using the `data.long` dataset you created in Question 1, create a table with descriptive statistics for growth (mean and variance) by period and treatment order group. 
 
 ```{r P2-setup}
-data.long <- reshape(data., idvar = "patient", 
+data.long = reshape(data., idvar = "patient", 
                      varying = cbind("dh0", "dh6", "dh12"), 
                      direction = "long", times = c(0, 6, 12), 
                      timevar = "Period", v.names = "Growth")
-data.long$TreatOrder <- factor(data.$group, 
+data.long$TreatOrder = factor(data.$group, 
                               levels = c("GH-placebo", "placebo-GH"))
-data.long$sex <- factor(data.$sex, levels = 1:2, 
+data.long$sex = factor(data.$sex, levels = 1:2, 
                            labels = c("Male", "Female"))
-data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
-data.long <- data.long[order(data.long$patient, data.long$Period), ]
+data.long$Period.f = factor(data.long$Period, levels = c(0, 6, 12))
+data.long = data.long[order(data.long$patient, data.long$Period), ]
 ```
 
 ```{r P2, exercise=TRUE, exercise.lines = 20}
@@ -130,8 +129,8 @@ Then do the same using only the patients with data on both periods (i.e., comple
 
 ```{r P21-hint-1}
 # Completers only
-completers <- data.[complete.cases(data.), "patient"]
-data.long.c <- data.long[data.long$patient %in% completers, ]
+completers = data.[complete.cases(data.), "patient"]
+data.long.c = data.long[data.long$patient %in% completers, ]
 ```
 
 ```{r P21-hint-2}
@@ -171,20 +170,20 @@ Now we are going to make some plots to describe the data. For this part of the e
  Use `?xyplot` to learn more about its arguments and see other examples. 
 
 ```{r P3-setup}
-data.long <- reshape(data., idvar = "patient", 
+data.long = reshape(data., idvar = "patient", 
                      varying = cbind("dh0", "dh6", "dh12"), 
                      direction = "long", times = c(0, 6, 12), 
                      timevar = "Period", v.names = "Growth")
-data.long$TreatOrder <- factor(data.$group, 
+data.long$TreatOrder = factor(data.$group, 
                               levels = c("GH-placebo", "placebo-GH"))
-data.long$sex <- factor(data.$sex, levels = 1:2, 
+data.long$sex = factor(data.$sex, levels = 1:2, 
                            labels = c("Male", "Female"))
-data.long$Period.f <- factor(data.long$Period, levels = c(0, 6, 12))
-data.long <- data.long[order(data.long$patient, data.long$Period), ]
+data.long$Period.f = factor(data.long$Period, levels = c(0, 6, 12))
+data.long = data.long[order(data.long$patient, data.long$Period), ]
 
 # Completers only
-completers <- data.[complete.cases(data.), "patient"]
-data.long.c <- data.long[data.long$patient %in% completers, ]
+completers = data.[complete.cases(data.), "patient"]
+data.long.c = data.long[data.long$patient %in% completers, ]
 ```
 
 ```{r P3, exercise=TRUE, exercise.lines = 20}

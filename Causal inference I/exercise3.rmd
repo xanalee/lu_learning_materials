@@ -1,0 +1,67 @@
+---
+title: "exercise3"
+author: "Xiang Li"
+date: "2024/2/20"
+output: pdf_document
+---
+```{r}
+## Install and invoke packages
+if(!"dagitty" %in% .packages(all = TRUE)) install.packages("dagitty")
+if(!"ggplot2" %in% .packages(all = TRUE)) install.packages("ggplot2")
+if(!"GGally" %in% .packages(all = TRUE)) install.packages("GGally")
+if(!"gridExtra" %in% .packages(all = TRUE)) install.packages("gridExtra")
+
+## Load packages
+library(dagitty)
+library(ggplot2)
+library(GGally)
+library(gridExtra)
+```
+# Exercise 1
+```{r}
+## Specify the DAG
+g.postulated <- dagitty('dag {
+  C   [pos="-4.000,-3.000"]
+  CS  [pos="-4.000,3.000"]
+  FL  [pos="1.000,-3.000"]
+  I   [outcome,pos="2.500,3.000"]
+  IGP [pos="-1.000,3.000"]
+  NMF [pos="2.500,-1.000"]
+  PGP [pos="-1.000,-2.000"]
+  PI  [pos="-4.000,1.000"]
+  TM  [pos="-4.000,-1.000"]
+  WUE [exposure,pos="-1.000,0.000"]
+  C   -> { FL TM }
+  CS  -> { IGP PI }
+  FL  -> { NMF PGP }
+  IGP -> I
+  NMF -> { I IGP }
+  PGP -> WUE
+  TM  -> { IGP PI }
+  WUE -> IGP
+  }
+')
+
+## Plotting DAG
+plot(g.postulated)
+```
+## 1
+{CS, TM, WUE, NMF}
+## 2
+{IGP, CS, TM, C, WUE, PGP, FL, NMF}
+## 3
+{IGP, I}
+## 4
+{PI, IGP, I}
+## 5
+{C->FL->NMF->I, C->FL->NMF->IGP->I, C->FL->PGP->WUE->IGP->I, C->TM->IGP->I}
+## 6
+Yes.
+
+# Exercise 2
+## 7
+{FL, NMF, I, PGP, WUE, TM, PI}
+
+```{r}
+
+```

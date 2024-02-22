@@ -503,8 +503,9 @@ ggplot(data = mtcars, mapping = aes(x = disp, y = mpg, color = hp, shape = as.fa
   labs(x = "displacement(cu.in.)", y = "fuel efficiency(mpg)") +
   scale_color_gradient(low = 'darkgreen', high = 'lightgreen') +
   scale_shape_manual(values = c(18,17,19)) +
-  guides(color = guide_colorbar(title = "power(hp)", order = 1), size = guide_legend(title = "weight(1000lbs)", order = 2), shape = guide_legend(title = "cylinders", order = 3)) +
+  guides(color = guide_colorbar(title = "power(hp)", order = 1), size = guide_legend(title = "weight(1000lbs)", order = 2, override.aes = list(color = "darkgreen")), shape = guide_legend(title = "cylinders", order = 3, override.aes = list(color = "darkgreen"))) +
+  theme_bw() +
   theme(panel.grid.major =
-         element_line(colour = "grey"), panel.background = element_rect(fill = NA), axis.line.x.bottom = element_line(colour = "black"), axis.line.y.left = element_line(colour = "black"), legend.box = 'horizontal', legend.text.align = 1, legend.box.background = element_rect(fill = 'white', colour = 'white'), legend.position = c(0.8, 0.9), legend.key = element_rect(fill = 'white'))
+         element_line(colour = "grey"), panel.background = element_rect(fill = NA), axis.line.x.bottom = element_line(colour = "black"), axis.line.y.left = element_line(colour = "black"), legend.box = 'horizontal', legend.box.background = element_rect(fill = 'white', colour = 'white'), legend.position = c(0.8, 0.9), legend.key = element_rect(fill = 'white'))
 ```
 
