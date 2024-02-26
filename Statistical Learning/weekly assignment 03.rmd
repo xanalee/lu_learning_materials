@@ -25,41 +25,36 @@ gen_data = function(n) {
   return(df)
 }
 ```
-With the small training set, logistic regression is expected to perform better, because the variance of logistic regression is smaller.
+Either with small or big training set, LDA is expected to perform better than logistic regression, because the ture model is the model assumed by LDA.
 
-With the big training set, LDA is expected to perform better, because the bias of LDA is smaller.
+And with big training set, both of models will perform better than small training set, because the variance of models is smaller.
 
 # 2.
-```{r}
+```{r, warning=FALSE}
 set.seed(519)
 test_set = gen_data(10000)
-cal_log_acc = function (n_train, test){
+cal_acc = function (n_train, test){
   n_reps = 100
-  acc_v = replicate(n_reps, 0)
+  acc_mat = matrix(data = 0, nrow = n_reps, ncol = 2)
+  colnames(acc_mat) = c('logistic regression', 'LDA')
   for (i in 1:n_reps) {
     train = gen_data(n = n_train)
-    model = glm(as.factor(y) ~ ., train, family = binomial)
-    prob_pre = predict(model, newdata = test, type = 'response')
-    y_pre = rep(1, nrow(test))
-    y_pre[prob_pre > 0.5] = 2
-    acc_v[i] = mean(y_pre == test$y)
+    logis_model = glm(as.factor(y) ~ ., train, family = binomial)
+    logis_prob_pre = predict(logis_model, newdata = test, type = 'response')
+    logis_y_pre = rep(1, nrow(test))
+    logis_y_pre[logis_prob_pre > 0.5] = 2
+    acc_mat[i, 1] = mean(logis_y_pre == test$y)
+    lda_model = lda(y ~ ., train)
+    lda_y_pre = predict(lda_model, newdata = test, type = 'response')$class
+    acc_mat[i, 2] = mean(lda_y_pre == test$y)
   }
-  return(mean(acc_v))
+  return(acc_mat)
 }
-cal_lda_acc = function (n_train, test){
-  n_reps = 100
-  acc_v = replicate(n_reps, 0)
-  for (i in 1:n_reps) {
-    train = gen_data(n = n_train)
-    model = lda(y ~ ., train)
-    y_pre = predict(model, newdata = test, type = 'response')$class
-    acc_v[i] = mean(y_pre == test$y)
-  }
-  return(mean(acc_v))
-}
-result = matrix(c(cal_log_acc(50, test_set), cal_log_acc(10000, test_set), cal_lda_acc(50, test_set), cal_lda_acc(10000, test_set)), nrow =2, byrow = TRUE)
-rownames(result) = c('logistic regression', 'LDA')
-colnames(result) = c('n = 50', 'n = 10000')
-result
+acc_mat_50 = cal_acc(50, test_set)
+acc_mat_10000 = cal_acc(10000, test_set)
+acc = matrix(c(apply(acc_mat_50, 2, mean), apply(acc_mat_10000, 2, mean)), nrow = 2, byrow = TRUE)
+colnames(acc) = c('logistic regression', 'LDA')
+rownames(acc) = c('n = 50', 'n = 10000')
+acc
 ```
 The obtained numbers in line with my expectations.
