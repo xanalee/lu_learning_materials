@@ -1,0 +1,54 @@
+---
+title: "03-exercises"
+author: "Xiang Li"
+date: "2024/2/23"
+output: pdf_document
+---
+```{r}
+library(ISLR2)
+```
+# 1
+## (a)
+```{r}
+p1 = exp(-6+0.05*40+1*3.5)/(1+exp(-6+0.05*40+1*3.5))
+p1
+```
+## (b)
+```{r}
+x1 = (6-3.5)/0.05
+x1
+```
+# 2
+## (1)
+```{r}
+train = Weekly[(Weekly$Year >= 1990) & (Weekly$Year <= 2008), ]
+lr = glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, data = train, family = binomial)
+```
+## (2)
+```{r}
+summary(lr)
+```
+Yes, Lag1 and Volume is statistically significant.
+
+## (3)
+```{r}
+test = Weekly[(Weekly$Year >= 2009) & (Weekly$Year <= 2010), ]
+pi_pre = predict(lr, newdata = test, type = "response")
+y_pre = rep('Down', nrow(test))
+y_pre[pi_pre > 0.5] = 'Up'
+y_true = test$Direction
+acc = mean(y_pre == y_true)
+acc
+table(y_pre, y_true)
+```
+No, because the balanced accuracy is so low.
+
+# 3
+## (1)
+LDA has higher variance and logistic regression has higher bias.
+
+## (2)
+Both of LDA and logistic will perform well.
+
+## (3)
+KNN > QDA > logistic regression, LDA

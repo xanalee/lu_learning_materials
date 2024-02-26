@@ -1,0 +1,65 @@
+---
+title: "weekly assignment 03"
+author: "Xiang Li"
+date: "2024/2/26"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(MASS)
+```
+# 1.
+```{r}
+gen_data = function(n) { 
+  p = 15
+  n1 = n2 = n/2
+  cov_1 = diag(rep(1,p)) + 0.2
+  x_class1 = mvrnorm(n1, mu = rep(3,p), Sigma = cov_1) 
+  x_class2 = mvrnorm(n2, mu = rep(2,p), Sigma = cov_1) 
+  x = rbind(x_class1, x_class2)
+  y = rep(c(1,2), c(n1, n2))
+  df = as.data.frame(cbind(x,y))
+  names(df) = c(paste0("x", 1:p), "y")
+  return(df)
+}
+```
+With the small training set, logistic regression is expected to perform better, because the variance of logistic regression is smaller.
+
+With the big training set, LDA is expected to perform better, because the bias of LDA is smaller.
+
+# 2.
+```{r}
+set.seed(519)
+test_set = gen_data(10000)
+cal_log_acc = function (n_train, test){
+  n_reps = 100
+  acc_v = replicate(n_reps, 0)
+  for (i in 1:n_reps) {
+    train = gen_data(n = n_train)
+    model = glm(as.factor(y) ~ ., train, family = binomial)
+    prob_pre = predict(model, newdata = test, type = 'response')
+    y_pre = rep(1, nrow(test))
+    y_pre[prob_pre > 0.5] = 2
+    acc_v[i] = mean(y_pre == test$y)
+  }
+  return(mean(acc_v))
+}
+cal_lda_acc = function (n_train, test){
+  n_reps = 100
+  acc_v = replicate(n_reps, 0)
+  for (i in 1:n_reps) {
+    train = gen_data(n = n_train)
+    model = lda(y ~ ., train)
+    y_pre = predict(model, newdata = test, type = 'response')$class
+    acc_v[i] = mean(y_pre == test$y)
+  }
+  return(mean(acc_v))
+}
+result = matrix(c(cal_log_acc(50, test_set), cal_log_acc(10000, test_set), cal_lda_acc(50, test_set), cal_lda_acc(10000, test_set)), nrow =2, byrow = TRUE)
+rownames(result) = c('logistic regression', 'LDA')
+colnames(result) = c('n = 50', 'n = 10000')
+result
+```
+The obtained numbers in line with my expectations.
