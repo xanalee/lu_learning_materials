@@ -503,6 +503,7 @@ ggplot(data = mtcars, mapping = aes(x = disp, y = mpg, color = hp, shape = as.fa
   labs(x = "displacement(cu.in.)", y = "fuel efficiency(mpg)") +
   scale_color_gradient(low = 'darkgreen', high = 'lightgreen') +
   scale_shape_manual(values = c(18,17,19)) +
+  scale_radius(range = c(1, 4)) +
   guides(color = guide_colorbar(title = "power(hp)", order = 1), size = guide_legend(title = "weight(1000lbs)", order = 2, override.aes = list(color = "darkgreen")), shape = guide_legend(title = "cylinders", order = 3, override.aes = list(color = "darkgreen"))) +
   theme_bw() +
   theme(panel.grid.major =

@@ -1,0 +1,450 @@
+---
+title: "Lecture 4 - Visualizing Distributions Template"
+author: "dr. Ethan McCormick"
+date: "2023-02-16"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE, errors = FALSE, message = FALSE, cache = TRUE)
+```
+
+```{r}
+#| echo: false
+#| warnings: false
+
+library(ggplot2)
+library(dplyr)
+
+# The Butterfat % For Cows
+load("cows.rda")
+names(cows) <- c("ButterFat", "Age", "Breed")
+
+# Titanic Deaths
+load("titanic.rda")
+names(titanic) <- c("Class","Age","Sex","Survived")
+titanic_deaths <- titanic |> filter(Survived == 0)
+
+# Life Expectancy
+life <- read.csv("LifeFull.csv", header = TRUE)
+life[life$lifespan == -9, "lifespan"] <- NA
+life[life$gdp == -9, "gdp"] <- NA
+
+# End-of-Year Testing
+eoy <- read.csv("end-of-year.csv", header = TRUE)
+
+# Central Park
+central <- read.csv("central-park.csv", header = TRUE)
+```
+
+# Histograms
+
+-   the continuous data analog to bar charts
+-   ordering is no longer an issue - your data are already in an order
+-   easy to compare values
+    -   but on a continuous number line
+    -   continuity introduces additional challenges
+
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) + 
+  geom_histogram(binwidth = NULL)
+```
+
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) + 
+  geom_histogram(binwidth = 0.2)
+```
+
+## Customizing Histograms
+
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) + 
+  geom_histogram(binwidth = 0.2,
+                 color = "forestgreen",
+                 fill = "grey90") + 
+  ggplot2::theme_dark()
+```
+
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) + 
+  geom_histogram(binwidth = 0.2) + 
+  coord_flip()
+```
+
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) + 
+  geom_histogram(binwidth = 0.2) + 
+  geom_vline(mapping = 
+               aes(xintercept = 
+                     stats::median(ButterFat)),
+             linewidth = 2, 
+             color = "cyan", 
+             linetype = 4)  + 
+  geom_vline(mapping = 
+               aes(xintercept = 
+                     stats::quantile(ButterFat, probs = 0.25)),
+             linewidth = 1, 
+             color = "gold", 
+             linetype = 2) + 
+  geom_vline(mapping = 
+               aes(xintercept = 
+                     stats::quantile(ButterFat, probs = 0.75)),
+             linewidth = 1, 
+             color = "gold", 
+             linetype = 2)
+```
+
+
+
+
+# Density plots
+
+To get even more fine-grained distribution visualizations, we can
+instead use density plots
+
+-   Think of this as histograms with ever-shrinking bin widths and then
+    smoothed over to give a continuous surface
+
+-   Analogous to bin width is the width of the smoothing kernel to make
+    the density surface
+
+## Customizing Density Plots
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_density(bw = 10,
+               fill = "grey50")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_density(bw = 2,
+               kernel = "rectangular",
+               fill = "grey50")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_density(bw = 2,
+               kernel = "triangular",
+               fill = "grey50")
+```
+
+## Advanced Option - combining histogram and density plots
+
+Sometimes it is convenient to have both the histogram bins and smooth
+density in the same plot, but usually the y-axis scales are poorly
+aligned
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_histogram(binwidth = 5, 
+                 color = "black", 
+                 fill = "grey50") +
+  geom_density(bw = 5,
+               color = "blue",
+               linewidth = 2)
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_histogram(binwidth = 5, 
+                 color = "black", 
+                 fill = "grey50") +
+  geom_density(aes(y = after_stat(density) * nrow(titanic) * 5),
+               bw = 5,
+               linewidth = 2,
+               color = "blue")
+```
+
+# Visualizing multiple distributions
+
+-   Sometimes we are less interested in the overall marginal
+    distribution of a variable
+
+-   Conditional distributions give information about relevant subgroups
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) + 
+  geom_histogram(binwidth = 5, 
+                 color = "black", 
+                 fill = "grey50") +
+  geom_density(aes(y = after_stat(density) * nrow(titanic) * 5),
+               bw = 5,
+               color = "blue",
+               linewidth = 2)
+```
+
+```{r}
+fill_cols <- wesanderson::wes_palette(name = "Zissou1", 
+                                      n = 5, 
+                                      type = "discrete")[c(1,5)]
+
+ggplot(data = titanic,
+       mapping = aes(x = Age, fill = factor(Sex))) + 
+  geom_histogram(binwidth = 5,
+                 color = "black") +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_fill_manual(labels = c("Female", "Male"), values = fill_cols) +
+  labs(fill = "Sex", y = "Number of Passengers")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, fill = factor(Sex))) + 
+  geom_histogram(binwidth = 5,
+                 position = "identity",
+                 color = "black",
+                 alpha = 0.75) +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_fill_manual(labels = c("Female", "Male"), values = fill_cols) +
+  labs(fill = "Sex", y = "Number of Passengers")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, fill = factor(Sex, levels = c("male","female")))) + 
+  geom_histogram(binwidth = 5,
+                 position = "identity",
+                 color = "black",
+                 alpha = 0.75) +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_fill_manual(labels = rev(c("Female", "Male")), values = rev(fill_cols)) +
+  labs(fill = "Sex", y = "Number of Passengers")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, y = after_stat(count),
+                     color = factor(Sex, levels = c("male","female")),
+                     fill = factor(Sex, levels = c("male","female")))) + 
+  geom_density(bw = 2,
+               position = "stack",
+               alpha = 0.5) +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_color_manual(labels = rev(c("Female", "Male")), values = rev(fill_cols)) +
+  scale_fill_manual(labels = rev(c("Female", "Male")), values = rev(fill_cols)) +
+  labs(color = "Sex", fill = "Sex", y = "Scaled Density")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, y = after_stat(count))) + 
+  geom_density(data = subset(titanic, select=-c(Sex)),
+               mapping = aes(x = Age, y = after_stat(count), 
+                             color = "All", fill = "All")) + 
+  geom_density(mapping = aes(color = factor(Sex),
+                             fill = factor(Sex)),
+               bw = 2,
+               position = "stack",
+               alpha = 0.5) +
+  facet_wrap(~ factor(Sex, 
+                      levels = c("male","female"), 
+                      labels = c("Male","Female")), 
+             labeller = label_parsed) + 
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_color_manual(labels = c("All","Female", "Male"), 
+                     values = c("grey",fill_cols)) +
+  scale_fill_manual(labels = c("All","Female", "Male"), 
+                    values = c("grey",fill_cols)) +
+  labs(color = "Sex", fill = "Sex", y = "Scaled Density")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, fill = factor(Sex))) + 
+  geom_histogram(data = subset(titanic, Sex == "female"), 
+                 aes(y = after_stat(count)),
+                 binwidth = 5,
+                 color = "black") +
+  geom_histogram(data = subset(titanic, Sex == "male"), 
+                 aes(y = -1*after_stat(count)),
+                 binwidth = 5,
+                 color = "black") +
+  coord_flip() +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_fill_manual(labels = c("Female", "Male"), values = fill_cols) +
+  scale_y_continuous(labels = abs) +
+  labs(fill = "Sex", y = "Number of Passengers")
+```
+
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age, fill = factor(Sex))) + 
+  geom_density(data = subset(titanic, Sex == "female"), 
+               aes(y = after_stat(count)),
+               bw = 5,
+               color = "black") +
+  geom_density(data = subset(titanic, Sex == "male"), 
+               aes(y = -1*after_stat(count)),
+               bw = 5,
+               color = "black") +
+  coord_flip() +
+  theme(legend.justification = c(1, 1), legend.position = c(1, 1)) + 
+  scale_fill_manual(labels = c("Female", "Male"), values = fill_cols) +
+  scale_y_continuous(labels = abs) +
+  labs(fill = "Sex", y = "Scaled Density")
+```
+
+
+
+# Visualizing many distributions
+
+-   Thus far we have exclusively focused on characterizing the
+    distribution of a single variable or perhaps 2 subgroups
+
+-   (Almost) always for real-world projects, we will work with one of
+    the following:
+
+    -- many subgroups of interest (e.g., countries, universities)
+
+    -- several repeated measures of the same variable over time (e.g.,
+    yearly crime statistics)
+
+    -- multiple variables
+
+    -   by far the most common
+
+    -   **but** usually just involves repeating steps done for a single
+        variable
+
+## Visualizing many distributions - ridgeline/joy plots
+
+```{r}
+ggplot(cows, aes(x = ButterFat, 
+                 y = reorder(factor(Breed), ButterFat, mean),
+                 fill = factor(Breed))) + 
+  geom_density_ridges() + 
+  scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_x_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(y = "Cow Breed", x = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+## Visualizing many distributions - jitter plots
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed))) + 
+  geom_point() + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(y = "Cow Breed", x = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed))) + 
+  geom_jitter(width = 0.2) + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(x = "Cow Breed", y = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+## Visualizing many distributions - box plots
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed),
+                 fill = factor(Breed))) + 
+  geom_boxplot(alpha = 0.1) + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(x = "Cow Breed", y = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+## Visualizing many distributions - jitter + box plots
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed),
+                 fill = factor(Breed))) + 
+  geom_jitter(width = 0.2) + 
+  geom_boxplot(alpha = 0.1, width = 0.4) + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(x = "Cow Breed", y = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+## Visualizing many distributions - jitter + box plots
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed),
+                 fill = factor(Breed))) + 
+  geom_jitter(width = 0.2) + 
+  geom_boxplot(alpha = 0.1, width = 0.4, outlier.color = "transparent") + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(x = "Cow Breed", y = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+## Visualizing many distributions - jitter + violin plots
+
+```{r}
+ggplot(cows, aes(x = reorder(factor(Breed), ButterFat, mean), 
+                 y = ButterFat,
+                 color = factor(Breed),
+                 fill = factor(Breed))) + 
+  geom_jitter(width = 0.2) + 
+  geom_violin(alpha = 0.1, width = 0.4) + 
+  scale_color_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+  labs(x = "Cow Breed", y = "Butter Fat %") +
+  theme(legend.position = "none")
+```
+
+# Miscellaneous Distribution Plots
+## Empirical Distribution Plots
+
+```{r}
+ggplot(data = life,
+       mapping = aes(x = lifespan)) + 
+  geom_density(fill = "blue", 
+               alpha = 0.5) + 
+  labs(x = "Life Expectancy (in Years)", y = "Density")
+```
+
+```{r}
+ggplot(data = life,
+       mapping = aes(x = lifespan)) + 
+  stat_ecdf() +
+  labs(x = "Life Expectancy (in Years)", y = "Normalized Rank")
+```
+
+## Quantile-Quantile (Q-Q) Plots
+
+```{r}
+ggplot(data = life,
+       mapping = aes(sample = lifespan)) + 
+  stat_qq(color = "#0072B2") +
+  stat_qq_line() +
+  labs(x = "Expected Observed Life Expectancy (z-scores)", y = "Observed Life Expectancy (in Years)")
+```
+
