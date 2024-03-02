@@ -20,7 +20,7 @@ library(gridExtra)
 # Exercise 1
 ```{r}
 ## Specify the DAG
-g.postulated <- dagitty('dag {
+g.postulated = dagitty('dag {
   C   [pos="-4.000,-3.000"]
   CS  [pos="-4.000,3.000"]
   FL  [pos="1.000,-3.000"]
@@ -60,7 +60,11 @@ Yes.
 
 # Exercise 2
 ## 7
-{FL, NMF, I, PGP, WUE, TM, PI}
+{}
+## 8
+{IGP, NMF}
+## 9
+
 
 ```{r}
 

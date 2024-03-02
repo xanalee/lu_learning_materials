@@ -356,7 +356,7 @@ for (i in 1:reps) {
     if (prob > best_dice)
       best_dice <- prob
   }
-  prob_6 <- best_dice
+  prob_6[i] <- best_dice
 }
 print(mean(prob_6))
 ```

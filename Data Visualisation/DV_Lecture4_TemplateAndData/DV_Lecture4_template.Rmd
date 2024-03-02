@@ -18,24 +18,24 @@ library(ggplot2)
 library(dplyr)
 
 # The Butterfat % For Cows
-load("cows.rda")
-names(cows) <- c("ButterFat", "Age", "Breed")
+load("DV_Lecture4_TemplateAndData/cows.rda")
+names(cows) = c("ButterFat", "Age", "Breed")
 
 # Titanic Deaths
-load("titanic.rda")
-names(titanic) <- c("Class","Age","Sex","Survived")
-titanic_deaths <- titanic |> filter(Survived == 0)
+load("DV_Lecture4_TemplateAndData/titanic.rda")
+names(titanic) = c("Class","Age","Sex","Survived")
+titanic_deaths = titanic |> filter(Survived == 0)
 
 # Life Expectancy
-life <- read.csv("LifeFull.csv", header = TRUE)
-life[life$lifespan == -9, "lifespan"] <- NA
-life[life$gdp == -9, "gdp"] <- NA
+life = read.csv("DV_Lecture4_TemplateAndData/LifeFull.csv", header = TRUE)
+life[life$lifespan == -9, "lifespan"] = NA
+life[life$gdp == -9, "gdp"] = NA
 
 # End-of-Year Testing
-eoy <- read.csv("end-of-year.csv", header = TRUE)
+eoy = read.csv("DV_Lecture4_TemplateAndData/end-of-year.csv", header = TRUE)
 
 # Central Park
-central <- read.csv("central-park.csv", header = TRUE)
+central = read.csv("DV_Lecture4_TemplateAndData/central-park.csv", header = TRUE)
 ```
 
 # Histograms
@@ -57,6 +57,21 @@ ggplot(data = cows,
        mapping = aes(x = ButterFat)) + 
   geom_histogram(binwidth = 0.2)
 ```
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) +
+  geom_histogram(binwidth = 0.5)
+```
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) +
+  geom_histogram(bins = 5)
+```
+```{r}
+ggplot(data = cows,
+       mapping = aes(x = ButterFat)) +
+  geom_histogram(bins = 15)
+```
 
 ## Customizing Histograms
 
@@ -66,7 +81,7 @@ ggplot(data = cows,
   geom_histogram(binwidth = 0.2,
                  color = "forestgreen",
                  fill = "grey90") + 
-  ggplot2::theme_dark()
+  theme_dark()
 ```
 
 ```{r}
@@ -118,6 +133,12 @@ instead use density plots
 
 ```{r}
 ggplot(data = titanic,
+       mapping = aes(x = Age)) +
+  geom_density(bw = 0.05,
+               fill = "grey50")
+```
+```{r}
+ggplot(data = titanic,
        mapping = aes(x = Age)) + 
   geom_density(bw = 10,
                fill = "grey50")
@@ -131,6 +152,13 @@ ggplot(data = titanic,
                fill = "grey50")
 ```
 
+```{r}
+ggplot(data = titanic,
+       mapping = aes(x = Age)) +
+  geom_density(bw = 2,
+               kernel = "rectangular",
+               fill = "grey50")
+```
 ```{r}
 ggplot(data = titanic,
        mapping = aes(x = Age)) + 
@@ -188,7 +216,7 @@ ggplot(data = titanic,
 ```
 
 ```{r}
-fill_cols <- wesanderson::wes_palette(name = "Zissou1", 
+fill_cols = wesanderson::wes_palette(name = "Zissou1", 
                                       n = 5, 
                                       type = "discrete")[c(1,5)]
 
@@ -326,7 +354,7 @@ ggplot(data = titanic,
 ggplot(cows, aes(x = ButterFat, 
                  y = reorder(factor(Breed), ButterFat, mean),
                  fill = factor(Breed))) + 
-  geom_density_ridges() + 
+  ggridges::geom_density_ridges() +
   scale_fill_manual(values = ggsci::pal_d3()(length(unique(cows$Breed)))) +
   scale_x_continuous(labels = scales::percent_format(scale = 1)) +
   labs(y = "Cow Breed", x = "Butter Fat %") +
