@@ -1,0 +1,86 @@
+---
+title: "04-exercises"
+author: "Xiang Li"
+date: "2024/3/4"
+output: pdf_document
+---
+```{r}
+library(readr)
+library(caret)
+library(class)
+```
+# 1
+```{r}
+# Load data
+student_mat = read_delim("student-mat.csv", delim = ";", escape_double = FALSE, trim_ws = TRUE)
+student_mat$y = as.factor(student_mat$G1>11)
+
+# Set the number of folds
+k = 5
+# Calculate the size of each fold
+fold_size = floor(nrow(student_mat) / k)
+# Define the folds
+folds = rep(1:k, each = fold_size)
+#in case sample size n is not dividable by number of folds k
+if (length(folds) < nrow(student_mat)) {
+  folds[(length(folds) + 1):nrow(student_mat)] = sample(1:k, nrow(student_mat) - length(folds))
+}
+
+# Initialize variables for storing results
+predictions = logical(nrow(student_mat))
+
+# Shuffle the folds (equivalent to shuffling the data)
+set.seed(519)
+folds = sample(folds)
+
+# Perform k-fold cross-validation
+for (i in 1:k) {
+  # Determine the test indices for the current fold
+  test_indices = folds == i
+  # Create the training and testing sets
+  train_set = student_mat[!test_indices, ]
+  test_set = student_mat[test_indices, ]
+  # Fit the model and make predictions
+  fitted_model = glm(y ~ studytime + schoolsup + romantic, data = train_set, family = "binomial")
+  probs = predict(fitted_model, test_set, type = "response")
+  classes = rep(FALSE, nrow(test_set))
+  classes[probs > .5] = TRUE
+  predictions[test_indices] = classes
+}
+# Calculate the overall mean squared error
+accuracy = mean(predictions == student_mat$y)
+print(accuracy)
+```
+# 2
+```{r}
+# Split train set and test set
+set.seed(519)
+n = nrow(student_mat)
+train_id = sample(n, round(n*0.8))
+train_set = student_mat[train_id, ]
+test_set = student_mat[-train_id, ]
+
+# Define the training control
+train_control = trainControl(method = "cv", number = 10)
+
+# Define the knn model with candidate ks
+set.seed(519)
+knn_model = train(y ~ studytime + schoolsup + romantic, data = train_set, method = "knn", tuneGrid = expand.grid(k = c(1,3,5,7,9)), trControl = train_control,
+preProcess = c("center","scale"))
+knn_model$results
+```
+Based on the Accuracy above, the best value of k is 3.
+
+# 3
+```{r}
+set.seed(519)
+logistic_reg_model = train(y ~ studytime + schoolsup + romantic, data = train_set, method = "lda", trControl = train_control)
+logistic_reg_model$results
+```
+KNN with k=3 is the model with the highest accuracy.
+```{r}
+knn_model_fin = train(y ~ studytime + schoolsup + romantic, data = train_set, method = "knn", tuneGrid=data.frame(k=3), trControl = trainControl(method = "none"), preProcess = c("center","scale"))
+knn_pre = predict(knn_model_fin, newdata = test_set)
+confusionMatrix(knn_pre, test_set$y)
+```
+The accuracy of KNN with k=3 on test set is 0.6582.

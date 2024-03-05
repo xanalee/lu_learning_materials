@@ -43,10 +43,10 @@ library(dplyr)
 ```{r}
 ## we are doing something *random* so let's set a seed so we always observe the same result each time we run the code
 set.seed(11)
-data_observed = select(mutate(data, exposure = case_when(rbinom(10, 1, 0.5) == 1 ~ "chocolate", TRUE ~ "vanilla"), observed_outcome = case_when(
-exposure == "chocolate" ~ y_chocolate,
-exposure == "vanilla" ~ y_vanilla )
-), id, exposure, observed_outcome)
+data_observed = select(mutate(data, exposure = case_when(rbinom(10, 1,
+0.5) == 1 ~ "chocolate", TRUE ~ "vanilla"), observed_outcome = case_when(
+  exposure == "chocolate" ~ y_chocolate, exposure == "vanilla" ~ y_vanilla)),
+   id, exposure, observed_outcome)
 ```
 ```{r}
 mean(data_observed[data_observed$exposure == 'chocolate', 'observed_outcome']) - mean(data_observed[data_observed$exposure == 'vanilla', 'observed_outcome'])

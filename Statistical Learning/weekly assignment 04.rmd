@@ -1,0 +1,52 @@
+---
+title: "weekly assignment 04"
+author: "Xiang Li"
+date: "2024/3/4"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(caret)
+data_df = read.csv('data.csv')
+data_df = data_df[, -c(1, 33)]
+```
+# 1
+```{r}
+set.seed(519)
+n = nrow(data_df)
+train_id = sample(n, round(n*0.8))
+train_df = data_df[train_id, ]
+test_df = data_df[-train_id, ]
+```
+# 2
+Choose 3 methods: QDA, Logistic Regression, KNN with k=4.
+
+# 3
+```{r}
+train_control = trainControl(method = 'cv', number = 10)
+set.seed(519)
+qda_model = train(diagnosis~., method = 'qda', trControl = train_control, data = train_df)
+qda_model$results
+```
+```{r, warning = FALSE}
+set.seed(519)
+lr_model = train(diagnosis~., method = 'glm', trControl = train_control, data = train_df)
+lr_model$results
+```
+```{r}
+set.seed(519)
+knn_model = train(diagnosis~., method = 'knn', trControl = train_control, data = train_df, tuneGrid=data.frame(k=4), preProcess = c("center","scale"))
+knn_model$results
+```
+Based on the accuracy of cross-validation, the most accurate model is KNN with k=4.
+
+# 4
+```{r}
+set.seed(519)
+knn_model_fin = train(diagnosis~., method = 'knn', trControl = trainControl(method = 'none'), data = train_df, tuneGrid=data.frame(k=4), preProcess = c("center","scale"))
+knn_pre = predict(knn_model_fin, newdata = test_df)
+confusionMatrix(knn_pre, as.factor(test_df$diagnosis))
+```
+On the test set, accuracy of the selected model is 0.9497, specificity is 0.8750, and sensitivity is 0.9865.
