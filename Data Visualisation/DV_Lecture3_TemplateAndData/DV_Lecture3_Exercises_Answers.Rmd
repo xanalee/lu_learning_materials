@@ -1,0 +1,429 @@
+---
+title: "Exercises - Visualising amounts and (nested) proportions"
+subtitle: Data Visualisation
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = FALSE, warning = FALSE, error = FALSE, message = FALSE, eval=FALSE, fig.align = 'center', fig.height = 3, fig.width = 5) # no answers
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.height = 3, fig.width = 5) # with answers
+
+```
+
+
+```{r loadPackagesAndData, eval = TRUE}
+
+library(ggplot2)
+library(datasets)
+library(tidyverse)
+library(gapminder)
+library(GGally)
+library(ggridges)
+library(RColorBrewer)
+library(ggmosaic)
+library(see) # to use the Okabe-Ito color palette, suitable for color blind people
+
+```
+
+
+## Visualising amounts for one categorical variable
+### Exercise 1: Bar charts with counts
+
+Use the `mtcars` data set to perform the following exercises. This data set contains the specifications of several cars.
+
+a. Make a bar chart that shows the distribution of car frequency based on number of cylinders. Give sensible labels to the axes, as in the example below.
+```{r, eval = TRUE}
+# Load data:
+data(mtcars)
+
+ggplot(data = mtcars, 
+       mapping = aes(x=as.factor(cyl))) + 
+  geom_bar() + 
+  labs(x = "number of cylinders",
+       y = "count")
+```
+
+b. Next, flip the bar chart such that the number of cylinders are on the y-axis and the counts on the x-axis. 
+```{r}
+ ggplot(data = mtcars, 
+        mapping = aes(x = cyl)) + 
+  geom_bar(stat="count") + 
+  coord_flip() +
+  labs(x="count", y="number of cylinders")
+ 
+
+# Other option: calculate the counts yourself and plot with geom_col: 
+
+#mtcars %>%
+#  mutate(cyl=as.factor(cyl)) %>%
+#  group_by(cyl) %>%
+#  count() %>%
+#  ggplot(aes(y=n, x=cyl)) + 
+#  geom_col() +
+#  coord_flip() +
+#  labs(x="count", y="number of cylinders")
+
+
+```
+c. Next, reorder the bars in terms of the number of cars in each category.
+
+```{r}
+ ggplot(data = mtcars, 
+        mapping = aes(x = reorder(cyl, 
+                                  cyl, 
+                                  FUN = table))) + 
+  geom_bar(stat="count") +   
+  labs(y="count", 
+       x="number of cylinders") + 
+  coord_flip() 
+ 
+
+
+
+# Other option: calculate the counts yourself and plot with geom_col: 
+
+#mtcars %>%
+#  mutate(cyl=as.factor(cyl)) %>%
+#  group_by(cyl) %>%
+#  count() %>%
+#  ggplot(aes(y=n, x=reorder(cyl, n))) + 
+#  geom_col() +
+#  coord_flip() +
+#  labs(x="count", y="number of cylinders")
+
+
+```
+
+### Exercise 2: Bar charts with summary statistics
+
+For this exercise we will use the `iris` data set that includes the sepal and petal lengths and widths of flowers of three species.
+
+a. Create a bar chart that displays the mean sepal length for each of the species and give sensible labels to the axes. Flip the bar chart so we can easily read the species names.
+```{r}
+ggplot(data = iris,
+       mapping = aes(x = Species, 
+                     y = Sepal.Length)) + 
+  geom_bar(stat = "summary",
+           fun = "mean") + 
+  labs(x = "Species",
+       y = "Mean Sepal Length") + 
+  coord_flip()
+```
+
+b. Now reorder the bars such that the species with the shortest sepals is shown at the top and the longest at the bottom.
+```{r}
+ggplot(data = iris,
+       mapping = aes(x = 
+                       reorder(x = Species,
+                               X = -Sepal.Length, 
+                               FUN = mean), 
+                     y = Sepal.Length)) + 
+  geom_bar(stat = "summary",
+           fun = "mean") + 
+  labs(x = "Species",
+       y = "Mean Sepal Length") + 
+  coord_flip()
+
+```
+
+c. Give each bar a different color, but remove the legend as color is a bit redundant. 
+```{r}
+ggplot(data = iris,
+       mapping = aes(x = 
+                       reorder(x = Species,
+                               X = -Sepal.Length, 
+                               FUN = mean), 
+                     y = Sepal.Length,
+                     fill = Species)) + 
+  geom_bar(stat = "summary",
+           fun = "mean") + 
+  labs(x = "Species",
+       y = "Mean Sepal Length") + 
+  coord_flip() + 
+  theme(legend.position = "none")
+
+```
+
+d. Add each bar's value (i.e. the sepal length means) to the plot and make sure that they are in the area of the bar. As an example, see the plot below.  
+```{r, eval = TRUE}
+ggplot(data = iris,
+       mapping = aes(x = 
+                       reorder(x = Species,
+                               X = -Sepal.Length, 
+                               FUN = mean), 
+                     y = Sepal.Length,
+                     fill = Species)) + 
+  geom_bar(stat = "summary",
+           fun = "mean") + 
+  geom_text(mapping = aes(label = round(after_stat(y), digits = 1)),
+            stat = "summary",
+            fun = "mean",
+            nudge_y = -0.5,
+            color = "white",
+            size = 10) + 
+  labs(x = "Species",
+       y = "Mean Sepal Length") + 
+  theme(legend.position = "none") + 
+  coord_flip()
+
+```
+
+
+## Visualising amounts for two categorical variable
+### Exercise 3: Stacked and grouped bar charts
+
+Use the `happy` data set from the `GGally` package to perform the following exercises. The data is a small sample of variables related to happiness from the General Social Survey (GSS). The GSS is a yearly cross-sectional survey of Americans, run from 1972. 
+
+The variables in this dataset relate to happiness, and we will be using the two variables `happy` and `martial`:
+
+- `happy`: happiness: very happy, pretty happy, not too happy.
+- `marital`: marital status: married, never married, divorced, widowed, separated.
+
+There is quite some missing data, so only use the cases that have no missing values on the variables that you are looking at. 
+
+```{r, eval = TRUE}
+happy_complete <- happy[complete.cases(happy[,c("happy", "marital")]),]
+```
+
+a. Create stacked bar charts that show the distribution of marital status within each happiness level.  
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = happy, 
+                     fill = marital)) + 
+  geom_bar() + 
+   scale_fill_okabeito(name = "martial status") 
+```
+
+b. Create grouped bar charts that show the distribution of marital status within each happiness level.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = happy, 
+                     fill = marital)) + 
+  geom_bar(position = position_dodge2()) + 
+   scale_fill_okabeito(name = "martial status")
+
+```
+
+c. Create a multipanel version of the previous plot using `facet_grid`.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = marital,
+                     fill = marital)) + 
+  geom_bar() + 
+  scale_fill_okabeito(name = "martial status") + 
+  facet_grid(~ happy) +
+  #theme(axis.text.x = element_text(angle=90)) # Option 1: put the tick labels at an angle.
+  theme(axis.text.x = element_blank()) # Option 2: completely remove the tick labels
+```
+
+
+### Exercise 4: Heatmaps
+
+Make a heat map that indicates the number of internet users in several countries throughout the years, as was shown in the lecture video. The data from many countries are available in `internet.rda`. To reduce the data, make a selection of ±15-20 countries, based on which you find most interesting. Play around with the colors; what colors do you think are most insightful? 
+
+```{r, eval = FALSE, fig.height= 6, fig.width=10}
+load("internet.rda")
+internet <- as.data.frame(internet)
+internet_selection <- internet[which(internet$country %in% c("Iceland",
+                                                             "Norway",
+                                                             "United States",
+                                                             "Canada",
+                                                             "New Zealand",
+                                                             "United Kingdom",
+                                                             "Japan",
+                                                             "Germany",
+                                                             "Israel",
+                                                             "Italy",
+                                                             "France",
+                                                             "Chile",
+                                                             "Brazil",
+                                                             "Argentina",
+                                                             "Mexico",
+                                                             "China",
+                                                             "South Africa",
+                                                             "Algeria",
+                                                             "India",
+                                                             "Kenya") & 
+                                       internet$year > 1994),]
+
+
+ggplot(data = internet_selection,
+       mapping = aes(x = year, 
+                     y = reorder(x = country,
+                                 X = internet_selection[which(internet_selection$year == 1995), "users"], 
+                                 fun = mean),
+                     fill = users)) + 
+  geom_tile() + 
+  scale_fill_distiller(type = "seq",
+                    palette = "Blues",
+                    direction = 1) + # change direction so that high values have a dark color
+  theme_minimal()
+
+```
+
+
+## Visualising proportions
+Again use the `happy` data from the `Ggally` package, as we used in Exercise 3.
+
+### Exercise 5: Stacked bar charts 
+
+
+a. Create stacked bar chart that shows the distribution of marital status in the data set.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) +
+  geom_bar() + 
+  scale_fill_okabeito(name = "martial status") + 
+  theme_minimal()
+```
+
+b. Now create the same stacked bar chart, but make sure that the bar length indicates the proportions (i.e. number between 0 and 1) instead of the counts. To accomplish this, use the argument `position = position_fill()` in the `geom_bar` function.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) + 
+  geom_bar(position = position_fill()) + 
+  scale_fill_okabeito(name = "martial status") + 
+  theme_minimal() + 
+  labs(y = "proportion")
+```
+
+c. Now make a series of stacked bars indicating the proportion of marital status within each happiness level, like in the figure below.
+```{r eval = TRUE}
+ggplot(data = happy_complete,
+       mapping = aes(x = happy, 
+                     fill = marital)) + 
+  geom_bar(position = position_fill()) + 
+  scale_fill_okabeito(name = "martial status") + 
+  theme_minimal() + 
+  labs(y = "proportion")
+```
+
+
+### Exercise 6: Pie charts
+
+a. Create a pie chart that shows the distribution of marital status in the data set. Remember to use the `void` theme to remove grid lines.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) + 
+  geom_bar() +
+  coord_polar(theta = "y") + 
+  theme_void()
+```
+
+b. Now create this pie chart multiple times to represent the distribution of marital status within each happiness level, as below. Tip: use `facet_grid`. 
+```{r, eval = TRUE}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) + 
+  geom_bar(position = position_fill()) +
+  scale_fill_okabeito(name = "martial status") + 
+  coord_polar(theta = "y", clip = "off") + 
+  theme_void() + 
+  facet_grid(~ happy)+
+  theme(strip.text = element_text(vjust = 1.2)) # adjust location of plot labels 
+```
+
+### Exercise 7: Side-by-side bar charts
+
+a. Create a side-by-side chart that shows the distribution of marital status in the data set.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) + 
+  geom_bar(position = position_dodge2()) + 
+  scale_fill_okabeito(name = "martial status") 
+```
+
+b. Use `facet_grid` to create as series of side-by-side charts that shows the distribution of marital status in each happiness level.
+```{r}
+ggplot(data = happy_complete,
+       mapping = aes(x = "", 
+                     fill = marital)) + 
+  geom_bar(position = position_dodge2()) + 
+  scale_fill_okabeito(name = "martial status") +
+  facet_grid(~ happy) + 
+  labs(x = NULL)
+```
+
+## Challenges!
+
+### Remake the plot
+
+The plot below was made with the `iris` data set, but then in long format (`long_iris`) with one row per measurement. Remake the plot as closely as possible.
+  
+```{r, eval = TRUE}
+# Iris data to long format: 
+long_iris <- iris %>% 
+  gather(key= 'part', value = 'value', Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%
+  separate(part,c('part','measure'), sep = '\\.')
+
+```
+
+```{r eval = TRUE, fig.width=6, fig.height=5}
+
+ggplot(data = long_iris[which(long_iris$measure == "Length"),],
+       mapping = aes(x = Species, 
+                     y = value,
+                     fill = Species)) + 
+    geom_bar(stat = "summary",
+             fun = "mean") + 
+  
+    # split plot between parts (petal vs. sepal)
+    facet_grid(cols = vars(part)) + 
+  
+    # add values in bars:
+    geom_text(mapping = aes(label = round(after_stat(y), digits = 1)),
+              stat = "summary",
+              fun = "mean",
+              nudge_y = -0.2,
+              color = "white",
+              size = 4) +
+  
+    # change colors:
+    scale_fill_okabeito() + 
+    
+    # ad labels
+    labs(x = "Species",
+         y = NULL,
+         title = "A comparison of three iris species",
+         subtitle = "on their mean petal and sepal lengths",
+         caption = "Data source: R") + 
+      
+    # adjust theme elements:
+    theme_minimal() + 
+    theme(axis.text.x=element_blank(), #remove x axis labels
+          axis.ticks.x=element_blank(), # remove x axis ticks
+          axis.text.y=element_blank(), #remove x axis labels
+          axis.ticks.y=element_blank(), # remove y axis ticks
+          text = element_text(size = 15), # enlarge text
+          plot.subtitle = element_text(size = 10),
+          panel.grid.major = element_blank(), # make subtitle smaller
+          panel.grid.minor = element_blank())   #remove y axis labels
+   
+
+```
+
+
+
+### Make a data story
+
+The data set `1976-2020-president_simplified.csv` contains election data of US presidents from 1976-2020 (Data & Lab, 2017). However, it contains only the votes for the candidates of the Democratic and Republican party, as all other votes were removed from the data to simplify it.
+
+Pretend that you are an analyst hired by a campaign manager of a presidential candidate of one of the two parties (you can decide which one). The campaign manager is trying to plan a campaign trip around the US. For this, they want to know which states may need some convincing to vote for the party's candidate via a campaign. 
+
+Create graph(s) that gives an overview of the votes in each state over a certain period. The idea is that the graph(s) could guide the campaign; what states should they focus on? You’re free to choose the periods, but include several years. Also include the data of multiple states in your graphs.
+
+
+*Note: some data preparations may be required!*
+
+
+```{r}
+# No answers provided; there are many options to tell this data story
+```
+
+

@@ -7,8 +7,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE, eval=TRUE,
-                      fig.align = 'center', fig.height = 3, fig.width = 5) 
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE, message = FALSE, eval=TRUE, fig.align = 'center', fig.height = 3, fig.width = 5)
 ```
 
 
@@ -22,7 +21,6 @@ library(ggridges)
 library(RColorBrewer)
 library(ggmosaic)
 library(see) # to use the Okabe-Ito color palette, suitable for color blind people
-
 ```
 
 
@@ -38,42 +36,59 @@ data(mtcars)
 a. Make a bar chart that shows the distribution of car frequency based on number of cylinders. Give sensible labels to the axes, as in the example below.
 
 ```{r}
-
+ggplot(data = mtcars, mapping = aes(x = cyl)) +
+  geom_bar(stat = "count") +
+  labs(x = 'number of cylinders')
 ```
 
 b. Next, flip the bar chart such that the number of cylinders are on the y-axis and the counts on the x-axis. 
 ```{r}
-
+ggplot(data = mtcars, mapping = aes(y = cyl)) +
+  geom_bar(stat = "count") +
+  labs(y = 'number of cylinders')
 ```
 
 c. Next, reorder the bars in terms of the number of cars in each category.
 
 ```{r}
-
+ggplot(data = mtcars, mapping = aes(x = reorder(x = cyl, X = cyl, FUN = table, decreasing = TRUE))) +
+  geom_bar(stat = "count") +
+  labs(x = 'number of cylinders')
 ```
 
 ### Exercise 2: Bar charts with summary statistics
 
 For this exercise we will use the `iris` data set that includes the sepal and petal lengths and widths of flowers of three species.
 
-a. Create a bar chart that displays the mean sepal length for each of the species and give sensible labels to the axes. Flip the bar chart so we can easily read the species names.
+a. Create a bar chart that displays the mean sepal length for each of the species and give sensible labels to the axes. Flip the bar chart, so we can easily read the species names.
 ```{r}
-
+ggplot(data = iris, mapping = aes(x = Sepal.Length, y = as.factor(Species))) +
+geom_bar(stat = 'summary', fun = 'mean') +
+labs(x = 'Mean Sepal.Length', y = 'Species')
 ```
 
 b. Now reorder the bars such that the species with the shortest sepals is shown at the top and the longest at the bottom.
 ```{r}
-
+ggplot(data = iris, mapping = aes(x = Sepal.Length, y = reorder(x = as.factor(Species), X = Sepal.Length, FUN = mean, decreasing = TRUE))) +
+geom_bar(stat = 'summary', fun = 'mean') +
+labs(x = 'Mean Sepal.Length', y = 'Species')
 ```
 
 c. Give each bar a different color, but remove the legend as color is a bit redundant. 
 ```{r}
-
+ggplot(data = iris, mapping = aes(x = Sepal.Length, y = reorder(x = as.factor(Species), X = Sepal.Length, FUN = mean, decreasing = TRUE), fill = as.factor(Species))) +
+geom_bar(stat = 'summary', fun = 'mean') +
+labs(x = 'Mean Sepal.Length', y = 'Species') +
+theme(legend.position = "none")
 ```
 
 d. Add each bar's value (i.e. the sepal length means) to the plot and make sure that they are in the area of the bar. As an example, see the plot below.  
 ```{r}
-
+ggplot(data = iris, mapping = aes(x = Sepal.Length, y = reorder(x = as.factor(Species), X = Sepal.Length, FUN = mean, decreasing = TRUE), fill = as.factor(Species))) +
+geom_bar(stat = 'summary', fun = 'mean') +
+geom_text(mapping = aes(label = after_stat(x)), stat = 'summary', fun = 'mean', color = 'white', hjust = 1, size = 10) +
+labs(x = 'Mean Sepal.Length', y = 'Species') +
+theme(legend.position = "none")
 ```
 
 
@@ -90,22 +105,26 @@ The variables in this dataset relate to happiness, and we will be using the two 
 There is quite some missing data, so only use the cases that have no missing values on the variables that you are looking at. 
 
 ```{r, eval = TRUE}
-happy_complete <- happy[complete.cases(happy[,c("happy", "marital")]),]
+happy_complete = happy[complete.cases(happy[,c("happy", "marital")]),]
 ```
 
 a. Create stacked bar charts that show the distribution of marital status within each happiness level.  
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = happy, fill = marital)) +
+  geom_bar(stat = "count")
 ```
 
 b. Create grouped bar charts that show the distribution of marital status within each happiness level.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = happy, fill = marital)) +
+geom_bar(stat = "count", position = position_dodge2())
 ```
 
 c. Create a multipanel version of the previous plot using `facet_grid`.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = marital, fill = marital)) +
+geom_bar(stat = "count") +
+facet_grid(rows = vars(happy))
 ```
 
 
@@ -114,34 +133,42 @@ c. Create a multipanel version of the previous plot using `facet_grid`.
 Make a heat map that indicates the number of internet users in several countries throughout the years, as was shown in the lecture video. The data from many countries are available in `internet.rda`. To reduce the data, make a selection of ±15-20 countries, based on which you find most interesting. Play around with the colors; what colors do you think are most insightful? 
 
 ```{r fig.height= 6, fig.width=10}
-load("internet.rda")
-internet <- as.data.frame(internet)
-internet_selection <- internet[which(internet$country %in% c() & # list your countries
-                                       internet$year > 1994),] # If you want, specify years
-
-
+load("DV_Lecture3_ExercisesDataTemplate/internet.rda")
+internet = as.data.frame(internet)
+internet_selection = internet[which(internet$country %in% c("Guinea", "Yemen, Rep.", "Bulgaria", "Honduras", "Macedonia, FYR", "Sierra Leone", "Romania", "Jamaica", "Haiti", "Montenegro", "Albania", "Dominica", "IDA blend", 'China', 'Singapore') & internet$year > 1994),] # If you want, specify years
+internet_selection = internet_selection[!is.na(internet_selection$users), ]
+```
+```{r}
+ggplot(data = internet_selection, mapping = aes(x = year, y = country, fill = users)) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low = 'lightgreen', high = 'darkgreen')
 ```
 
 
 ## Visualising proportions
 Again use the `happy` data from the `Ggally` package, as we used in Exercise 3.
 
-### Exercise 5: Stacked bar charts 
-
-
+### Exercise 5: Stacked bar charts
 a. Create stacked bar chart that shows the distribution of marital status in the data set.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = '', fill = marital)) +
+  geom_bar(stat = "count") +
+  labs(x = '')
 ```
 
 b. Now create the same stacked bar chart, but make sure that the bar length indicates the proportions (i.e. number between 0 and 1) instead of the counts. To accomplish this, use the argument `position = position_fill()` in the `geom_bar` function.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = '', fill = marital)) +
+  geom_bar(stat = "count", position = position_fill()) +
+  labs(x = '', y = 'proportion')
 ```
 
 c. Now make a series of stacked bars indicating the proportion of marital status within each happiness level, like in the figure below.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = happy, fill = marital)) +
+  geom_bar(stat = "count", position = position_fill()) +
+  labs(x = 'happy', y = 'proportion')
 ```
 
 
@@ -149,24 +176,36 @@ c. Now make a series of stacked bars indicating the proportion of marital status
 
 a. Create a pie chart that shows the distribution of marital status in the data set. Remember to use the `void` theme to remove grid lines.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = '', fill = marital)) +
+  geom_bar(stat = "count") +
+  theme_void() +
+  coord_polar(theta = 'y')
 ```
 
 b. Now create this pie chart multiple times to represent the distribution of marital status within each happiness level, as below. Tip: use `facet_grid`. 
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = '', fill = marital)) +
+  geom_bar(stat = "count", position = position_fill()) +
+  theme_void() +
+  coord_polar(theta = 'y') +
+  facet_grid(rows = vars(happy))
 ```
 
 ### Exercise 7: Side-by-side bar charts
 
 a. Create a side-by-side chart that shows the distribution of marital status in the data set.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = marital, fill = marital)) +
+  geom_bar(stat = "count") +
+  labs(x = 'marital', y = 'count')
 ```
 
 b. Use `facet_grid` to create as series of side-by-side charts that shows the distribution of marital status in each happiness level.
 ```{r}
-
+ggplot(data = happy_complete, mapping = aes(x = marital, fill = marital)) +
+  geom_bar(stat = "count") +
+  labs(x = 'marital', y = 'count') +
+  facet_grid(rows = vars(happy))
 ```
 
 ## Challenges!
@@ -177,7 +216,7 @@ The plot below was made with the `iris` data set, but then in long format (`long
   
 ```{r}
 # Iris data to long format: 
-long_iris <- iris %>% 
+long_iris = iris %>% 
   gather(key= 'part', value = 'value', Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) %>%
   separate(part,c('part','measure'), sep = '\\.')
 
@@ -202,7 +241,7 @@ Create graph(s) that gives an overview of the votes in each state over a certain
 
 ```{r}
 # Load data: 
-presidentData <- read.csv("1976-2020-president_simplified.csv")
+presidentData = read.csv("1976-2020-president_simplified.csv")
 
 
 ```

@@ -1,0 +1,216 @@
+---
+title: "Exercises - Visualizing Distributions"
+subtitle: "Data Visualization"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, error = FALSE, message = FALSE,
+                      fig.align = 'center', fig.height = 3, fig.width = 5) 
+
+library(tidyverse)
+library(gapminder)
+library(GGally)
+library(ggridges)
+library(RColorBrewer)
+library(ggmosaic)
+library(ggrain)
+```
+
+## Histograms
+
+### Exercise 1: Create bad histograms
+
+In this exercise we will use the data on cow butterfat (`cows.rda`) that was used in the lecture. 
+
+```{r}
+# The Butterfat % For Cows
+load("DV_Lecture4_ExercisesDataTemplate/cows.rda")
+names(cows) = c("ButterFat", "Age", "Breed")
+```
+
+a. Make a histogram of cow butterfat.
+```{r}
+ggplot(data = cows, mapping = aes(x = ButterFat)) +
+geom_histogram()
+```
+
+b. Purposefully obscure interesting or important information by playing with bin width and/or number.
+```{r}
+ggplot(data = cows, mapping = aes(x = ButterFat)) +
+geom_histogram(bins = 10)
+```
+```{r}
+ggplot(data = cows, mapping = aes(x = ButterFat)) +
+geom_histogram(bins = 20)
+```
+```{r}
+ggplot(data = cows, mapping = aes(x = ButterFat)) +
+geom_histogram(bins = 40)
+```
+
+c. Make it **ugly**.
+```{r}
+ggplot(data = cows, mapping = aes(x = ButterFat)) +
+geom_histogram(bins = 20, color = 'red', fill = 'blue')
+```
+
+### Exercise 2: Bin settings
+Use the `diamonds` data set that is available in `R` to perform this exercise.
+
+Create a histogram which displays the distribution of price and modify several bin settings in `geom_histogram()` such as the number of bins, binwidth, and the use of arguments `center` and `boundary`. What is the result of each modification?
+
+```{r}
+data(diamonds)
+```
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_histogram()
+```
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_histogram(binwidth = 10000)
+```
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_histogram(binwidth = 10000, center = 9999)
+```
+
+
+### Exercise 3: Multipanel histograms
+
+Continue working with the `diamonds` data set that is available in `R`. Create multipanel histograms that display the price distribution based on diamond cut.
+
+a. A histogram with axes which both scales (x and y axes) are fixed. What insight can we get from fixing the scales?
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_histogram() +
+facet_grid(rows = vars(cut), scales = 'fixed')
+```
+The prices have different scales among different cut types.
+
+b. A histogram in which only the scale of the x-axis is fixed. What information do we gain/loose by only fixing the scale of the x-axis for each diamond cut?
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_histogram() +
+facet_grid(rows = vars(cut), scales = 'free_y')
+```
+We can find the distribution of price within each group better.
+
+c. A histogram with different bin colors based on diamond cut. Would giving colors to the bins give more insight to the data? Explain your answer.
+    
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price, fill = cut)) +
+geom_histogram() +
+facet_grid(rows = vars(cut), scales = 'free_y')
+```
+Colors make the group clearly.
+
+## Density functions
+### Exercise 4
+Again, continue working with the `diamonds` data set that is available in `R`. 
+Create the density plot for price of diamonds that is shown below, i.e. add a line which indicates the median, color the area of the density in blue, and make the area slightly transparent.
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_density(color = NA, fill = 'blue', alpha = 0.3) +
+geom_vline(xintercept = median(diamonds$price), color = 'black', linetype = 'dashed')
+```
+
+### Exercise 5
+Again, continue working with the `diamonds` data set that is available in `R`. 
+Create a multipanel and multilayered density plot which compares the distribution of price of each diamond cut to the overall price distribution. like the one below.
+```{r fig.height = 5, fig.width = 10, fig.align = "center"}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+geom_density(data=select(diamonds, -cut), fill="darkgray", color="darkgray", alpha=0.3) +
+geom_density(color = 'blue', fill = 'blue', alpha = 0.3) +
+facet_grid(cols = vars(cut))
+```
+## Boxplots
+### Exercise 6 
+Use the `gapminder` data from the `gapminder` package for this exercise.
+
+a. Create boxplots that display the distribution of life expectancy at birth for each continent, as in the figure below.
+```{r}
+data("gapminder")
+```
+```{r}
+ggplot(data = gapminder, mapping = aes(x = continent, y = lifeExp)) +
+geom_boxplot()
+```
+
+b. Flip the axes of the above exercise and color the boxes light blue.
+```{r}
+ggplot(data = gapminder, mapping = aes(x = lifeExp, y = continent)) +
+geom_boxplot(color = 'lightblue', fill = 'lightblue', alpha = 0.1)
+```
+
+c. Fill the boxes with different colors and suppress the color legend.
+```{r}
+ggplot(data = gapminder, mapping = aes(x = continent, y = lifeExp, color = continent, fill = continent)) +
+geom_boxplot(alpha = 0.1) +
+theme(legend.position = 'none')
+```
+
+d. Include the individual data points as jitter on top of the bloxplots. Remove the outliers so that they are not mixed up with the data points. Try various transparencies so that both the boxplot and the data points are visible.
+```{r fig.height = 3}
+ggplot(data = gapminder, mapping = aes(x = continent, y = lifeExp, color = continent, fill = continent)) +
+geom_jitter(width = 0.2) +
+geom_boxplot(alpha = 0.1, outlier.color = 'transparent') +
+theme(legend.position = 'none')
+```
+
+## Empirical Distribution Plot
+### Exercise 7
+Using the `end-of-year.csv` file and `stat_ecdf()` make a plot showing the proportion of students with scores below 5.
+```{r}
+eoy = read.csv("DV_Lecture4_ExercisesDataTemplate/end-of-year.csv", header = TRUE)
+```
+```{r}
+ggplot(data = eoy, mapping = aes(x = score)) +
+stat_ecdf() +
+labs(x = 'Student Scores', y = 'Normalized Rank') +
+geom_vline(xintercept = 5, color = 'darkgrey', linetype = 'dashed')
+```
+
+## Quantile-Quantile (Q-Q) Plots
+### Exercise 8
+Using the student score data (`end-of-year.csv`) determine to what extent the observed score data follow Gaussian distribution.
+
+_Hint:_ Use `stat_qq()` and `stat_qq_line()`
+
+```{r}
+ggplot(data = eoy, mapping = aes(sample = score)) +
+stat_qq(distribution = qnorm, color = 'lightblue') +
+stat_qq_line(distribution = qnorm, color = 'black') +
+labs(x = 'Expected Observed Student Score (z−scores)', y = 'Observed Student Score')
+```
+
+
+
+
+## Challenges
+
+### Meteorological data from Central Park, NYC
+
+The dataset `central-park.csv` contains daily meteorological data from Central Park, NYC, in 2022. Pick variables that appeal to you and display their distribution throughout the year in a logical and meaningful way.
+
+```{r}
+central = read.csv("central-park.csv", header = TRUE)
+```
+
+```{r}
+
+```
+
+
+
+
+### Remake the plot 
+
+Using the student score data (`end-of-year.csv`), remake the plot below which shows the 
+the distribution of end of year assessment scores. 
+
+```{r eval = TRUE}
+
+```
+

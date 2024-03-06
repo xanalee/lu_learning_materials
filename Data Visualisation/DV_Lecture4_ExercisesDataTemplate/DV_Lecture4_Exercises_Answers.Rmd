@@ -1,0 +1,317 @@
+---
+title: "Exercises - Visualizing Distributions"
+subtitle: "Data Visualization"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo=FALSE, warning=FALSE, error=FALSE, message=FALSE, eval=FALSE, fig.align='center', fig.height=3, fig.width=5) # no answers
+knitr::opts_chunk$set(echo=TRUE, fig.height=3, fig.width=5) # with answers
+library(tidyverse)
+library(gapminder)
+library(GGally)
+library(ggridges)
+library(RColorBrewer)
+library(ggmosaic)
+library(ggrain)
+```
+
+
+## Instructions and tips: 
+
+
+- Open the template file for this exercise class and work in that file. The template contains some starting code and all the questions text.
+- Use the R help files to see the options that are available for a function. You can run `?functionname` (e.g. `?mean`) in your console, or use the bottom right screen in RStudio to look up help files.
+- To save some time you can copy parts of code from your answers to a first subquestion, and paste and adjust it in the next subquestion as many are sequential.
+
+## Histograms
+
+### Exercise 1: Create bad histograms
+
+In this exercise we will use the data on cow butterfat (`cows.rda`) that was used in the lecture. 
+
+```{r}
+# The Butterfat % For Cows
+load("cows.rda")
+names(cows) = c("ButterFat", "Age", "Breed")
+```
+
+a. Make a histogram of cow butterfat.
+
+a. Purposefully obscure interesting or important information by playing with bin width and/or number.
+
+a. Make it **ugly**.
+
+
+```{r}
+# Example 1: Cow ButterFat 
+
+ggplot(data=cows,
+       mapping=aes(x=ButterFat, fill=cut(ButterFat, 100))) + 
+  geom_histogram(binwidth=0.001) + 
+  geom_vline(mapping=
+               aes(xintercept=
+                     stats::quantile(ButterFat, probs=(1/6))),
+             linewidth=2, 
+             color="cyan", 
+             linetype=4) + 
+  scale_fill_discrete(h=c(180, 360), c=150, l=80) + 
+  theme(legend.position="none")
+
+```
+
+ 
+### Exercise 2: Bin settings 
+Use the `diamonds` data set that is available in `R` to perform this exercise.
+
+Create a histogram which displays the distribution of price and modify several bin settings in `geom_histogram()` such as the number of bins, binwidth, and the use of arguments `center` and `boundary`. What is the result of each modification?
+
+```{r}
+# Center positions the bins' center of the number ticks while boundary sets the ticks to be at the boundary of the bins. 
+
+data(diamonds)
+ggplot(data=diamonds, 
+       mapping=aes(x=price)) + 
+  geom_histogram(bins=90, 
+                 fill=NA, 
+                 color="black")
+
+ggplot(data=diamonds, 
+       mapping=aes(x=price)) + 
+  geom_histogram(binwidth=1000, 
+                 fill=NA, 
+                 color="black")
+
+ggplot(data=diamonds, 
+       mapping=aes(x=price)) + 
+  geom_histogram(center=500, 
+                 fill=NA, 
+                 color="black")
+
+ggplot(data=diamonds, 
+       mapping=aes(x=price)) + 
+  geom_histogram(boundary=500, 
+                 fill=NA, 
+                 color="black")
+```
+
+
+### Exercise 3: Multipanel histograms
+
+Continue working with the `diamonds` data set that is available in `R`. Create multipanel histograms that display the price distribution based on diamond cut.
+
+a. A histogram with axes which both scales (x and y axis) are fixed. What insight can we get from fixing the scales?
+```{r}
+ggplot(diamonds, 
+       aes(x=price)) + 
+  geom_histogram() + 
+  facet_grid(cut~.)
+
+```  
+a. A histogram in which only the scale of the x-axis is fixed. What information do we gain/loose by only fixing the scale of the x-axis for each diamond cut?
+```{r}
+ggplot(diamonds, 
+       aes(x=price)) + 
+  geom_histogram() + 
+  facet_wrap(cut~., scales="free_y")
+```    
+a. A histogram with different bin colors based on diamond cut. Would giving colors to the bins give more insight to the data? Explain your answer.
+    
+```{r}
+ggplot(diamonds, 
+       aes(x=price, fill=cut)) + 
+  geom_histogram() + 
+  facet_grid(cut~.)
+
+```
+
+
+## Density functions
+
+
+### Exercise 4
+
+Again, continue working with the `diamonds` data set that is available in `R`. 
+Create the density plot for price of diamonds that is shown below, i.e. add a line which indicates the median, color the area of the density in blue, and make the area slightly transparent.
+
+```{r eval=TRUE}
+ggplot(diamonds, aes(x=price)) + 
+  geom_density(fill="blue", 
+               color=NA,
+               alpha=0.1) +
+  geom_vline(aes(xintercept=median(price)),
+             alpha=.4,
+             linetype="dashed")
+```
+
+
+### Exercise 5
+
+Again, continue working with the `diamonds` data set that is available in `R`. 
+Create a multipanel and multilayered density plot which compares the distribution of price of each diamond cut to the overall price distribution. Like the one below.
+
+
+```{r eval=TRUE, fig.height=5, fig.width=10, fig.align="center"}
+ggplot(diamonds, aes(x=price)) + 
+  geom_density(data=select(diamonds, -cut), fill="darkgray", color="darkgray", alpha=0.2) +
+  geom_density(fill="blue", color="blue", alpha=0.1) + 
+  facet_grid(.~cut) + theme_bw()
+ 
+```
+## Boxplots
+
+### Exercise 6 
+Use the `gapminder` data from the `gapminder` package for this exercise.
+
+a. Create boxplots that display the distribution of life expectancy at birth for each continent, as in the figure below.
+
+```{r, eval=TRUE}
+data("gapminder")
+ggplot(gapminder, aes(x=continent, y=lifeExp)) + 
+  geom_boxplot()
+```
+
+a. Flip the axes of the above exercise and color the boxes light blue.
+
+
+```{r}
+ggplot(gapminder, aes(x=continent, y=lifeExp)) + 
+  geom_boxplot(fill="lightblue") + 
+  coord_flip()
+```
+
+a. Fill the boxes with different colors and suppress the color legend.
+
+```{r}
+ggplot(gapminder, aes(y=continent, x=lifeExp, fill=continent)) + 
+  geom_boxplot(show.legend=FALSE)
+```
+
+a. Include the individual data points as jitter on top of the bloxplots. Remove the outliers so that they are not mixed up with the data points. Try various transparencies so that both the boxplot and the data points are visible.
+
+```{r fig.height=3}
+ggplot(gapminder, aes(y=continent, x=lifeExp, fill=continent)) + 
+   geom_boxplot(alpha=0.4, width=0.4, outlier.shape=NA, show.legend=FALSE) + 
+   geom_jitter(mapping=aes(color=continent), height=0.2, alpha=.4, show.legend=FALSE) 
+
+```
+
+## Empirical Distribution Plot 
+
+### Exercise 7
+
+Using the `end-of-year.csv` file and `stat_ecdf()` make a plot showing the 
+proportion of students with scores below 5. 
+
+```{r eval=TRUE}
+eoy = read.csv("end-of-year.csv", header=TRUE)
+```
+
+
+```{r eval=TRUE}
+ggplot(data=eoy, mapping=aes(x=score)) + 
+  stat_ecdf() +
+  geom_vline(aes(xintercept=5), linetype="dashed", colour="grey") +
+  labs(x="Student Scores", y="Normalized Rank")
+```
+
+## Quantile-Quantile (Q-Q) Plots 
+
+### Exercise 8
+
+Using the student score data (`end-of-year.csv`) determine to what extent the observed score data follow Gaussian distribution.
+
+_Hint:_ Use `stat_qq()` and `stat_qq_line()`
+
+```{r eval=TRUE}
+ggplot(eoy, aes(sample=score)) + 
+  stat_qq(color="cornflowerblue") +
+  stat_qq_line() +
+   labs(x="Expected Observed Student Score (z-scores)", 
+        y="Observed Student Score")
+```
+
+
+\newpage
+
+## Challenges
+
+### Meteorological data from Central Park, NYC
+
+The dataset `central-park.csv` contains daily meteorological data from Central Park, NYC, in 2022. Pick variables that appeal to you and display their distribution throughout the year in a logical and meaningful way.
+
+```{r}
+central = read.csv("central-park.csv", header=TRUE)
+```
+
+```{r}
+ggplot(data=central, aes(x=(temp_min - 32) * (5/9), # fahrenheit to celsius
+                           y=factor(date, labels=format(as.Date(date), "%B"), 
+                                      ordered=TRUE))) + 
+  stat_density_ridges(geom="density_ridges_gradient",
+                                calc_ecdf=TRUE,
+                                panel_scaling=FALSE,
+                                rel_min_height=1e-7,
+                                quantile_lines=TRUE,
+                                quantile_fun=mean,
+                                vline_color="black",
+                                aes(fill=0.5-abs(0.5-after_stat(ecdf)),
+                                    linetype="Mean")) +
+  stat_density_ridges(geom="density_ridges_gradient", 
+                                calc_ecdf=TRUE,
+                                panel_scaling=FALSE,
+                                rel_min_height=1e-7,
+                                quantiles=c(0.025, 0.975), 
+                                quantile_lines=TRUE,
+                                jittered_points=TRUE,
+                                point_shape='|',
+                                fill=NA,
+                                vline_color="black",
+                                aes(linetype="p < .05")) +
+  stat_density_ridges(geom="density_ridges_gradient", 
+                                calc_ecdf=TRUE,
+                                panel_scaling=FALSE,
+                                rel_min_height=1e-7,
+                                quantiles=c(0.25, 0.5, 0.75), 
+                                quantile_lines=TRUE,
+                                jittered_points=TRUE,
+                                point_shape='|',
+                                fill=NA,
+                                vline_color="black",
+                                aes(linetype="Quartiles")) +
+  scale_y_discrete(limits=rev) +
+  scale_fill_gradientn(name="Tail Probability",
+                       colours=wesanderson::wes_palette("Zissou1", 100, type="continuous")) +
+  scale_linetype_manual(name="Statistics",
+                        breaks=c("Mean", "Quartiles", "p < .05"),
+                        values=c("Mean"="dotdash",
+                                   "Quartiles"="solid",
+                                   "p < .05"="longdash")) + 
+  theme(legend.position="right", legend.justification="center") +
+  labs(x="Minimum Temperature (C)", y="Month")
+
+  
+```
+
+
+
+
+### Remake the plot 
+
+Using the student score data (`end-of-year.csv`), remake the plot below which shows the 
+the distribution of end of year assessment scores. 
+
+```{r eval=TRUE}
+ggplot(data=eoy, aes(x=factor(year), y=score, fill=school)) + 
+  geom_rain(boxplot.args=list(color="black",
+                                outlier.shape=NA),
+            cov="school",
+            alpha=0.5,
+            id.long.var="id") +
+  scale_fill_manual(values=c("#0c2577","#840022")) +
+  scale_color_manual(values=c("#0c2577","#840022")) +
+  theme(legend.justification=c(1, 0), legend.position=c(1, 0)) +
+  guides(color="none") + 
+  labs(x="Testing Year", y="Standardized Score", fill="School")
+```
+
