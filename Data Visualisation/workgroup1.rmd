@@ -35,29 +35,25 @@ ggplot(data = df1, mapping = aes(x = reorder(x = geo, X = GDP, FUN = 'identity')
 geom_bar(stat = 'identity', fill = 'blue', alpha = 0.4) +
 labs(x = 'country', y = 'GDP, 2023') + coord_flip()
 ```
-## plot of Exports of goods and services
+## Stacked bar plot of Exports of goods and services
 ```{r}
-# ggplot(data = df1, mapping = aes(x = reorder(x = geo, X = EGS, FUN = 'identity'), y = GDP)) +
-# geom_bar(stat = 'identity', fill = 'blue', alpha = 0.4) +
-# labs(x = 'country', y = 'GDP, 2023') + coord_flip()
-df2 = gdp_df_wide[gdp_df_wide$geo %in% c('NL', 'DE', 'ES', 'FR') & (gdp_df_wide$unit == 'CP_MEUR'), ]
-ggplot(data = df2, mapping = aes(x = TIME_PERIOD, y = EGS, group = geo, color = geo)) +
-  geom_line() +
-  labs(x = 'Date', y = 'Exports of goods and services') +
-  guides(color = guide_legend(title = 'country'))
+df2 = gdp_df_wide[(gdp_df_wide$TIME_PERIOD == '2023-01-01') & !(gdp_df_wide$geo %in% c('EU27_2020', 'EU28', 'EU15', 'EA', 'EA12', 'EA19', 'EA20')) & (gdp_df_wide$unit == 'CP_MEUR'), c('geo', 'EG', 'ES')]
+df2 = melt(df2, id.vars = 'geo')
+colnames(df2)[2] = 'type'
+levels(df2$type)[which(levels(df2$type) == 'EG')] = 'Goods'
+levels(df2$type)[which(levels(df2$type) == 'ES')] = 'Services'
+ggplot(data = df2, mapping = aes(x = geo, y = value, fill = type)) +
+geom_bar(stat = 'identity') +
+labs(x = 'country', y = 'Exports of goods and services, 2023')
 ```
 ## plot of Compensation of employees
 ```{r}
-gdp_df = read.csv('data/gdp_wide.csv')
-gdp_df_c4=gdp_df[gdp_df$geo %in% c("FR","NL","SE","UK"),]
-gdp_c4=gdp_df_c4[gdp_df_c4$unit=="CP_MNAC",]
-gdp_c4$TIME_PERIOD=as.Date(gdp_c4$TIME_PERIOD)
-gdp_c4$Country=gdp_c4$geo
-theme_set(theme_classic())
-ggplot(data=gdp_c4,mapping=aes(x=TIME_PERIOD,y= CE,group=Country,color=Country,linetype=Country))+
-  geom_line()+
-  scale_x_date(labels = scales::date_format("%Y"))+
-  scale_color_manual(values=c("red","blue","black","brown"))+
-  labs(x="Time",y="",title="Compensation of employees",
-       subtitle = "4 countries:France  Netherlands  Sweden  United Kingdom")
+df3 = gdp_df_wide[(gdp_df_wide$TIME_PERIOD >= '2000-01-01') & (gdp_df_wide$geo %in% c("FR","NL","SE","UK")) & (gdp_df_wide$unit == 'CP_MNAC'),]
+ggplot(data = df3, mapping = aes(x = TIME_PERIOD, y = CE, color = geo, linetype = geo)) +
+  geom_line() +
+  theme_classic() +
+  scale_color_manual(values = c("red","blue","black","brown")) +
+  labs(x = "Time", y= "", title="Compensation of employees",
+       subtitle = "4 countries:France  Netherlands  Sweden  United Kingdom") +
+  guides(color = guide_legend(title = 'country'), linetype = guide_legend(title = 'country'))
 ```
