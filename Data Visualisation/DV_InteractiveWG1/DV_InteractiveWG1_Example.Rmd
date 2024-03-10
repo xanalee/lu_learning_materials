@@ -1,0 +1,157 @@
+---
+title: "Interactive Workgroup 1 - Example"
+subtitle: "Data Visualization"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, error = FALSE,message = FALSE, eval=TRUE, fig.height = 6, fig.align = "center") 
+
+library(tidyverse) # this package contains packages for data science: 
+                   # readr, tidyr, dplyr, ggplot2, and so on
+                   # for a complete list of the packages in tidyverse see
+                   # https://www.tidyverse.org/
+```
+
+
+# Example of downloading Eurostat data and exploring it
+
+For this example, we will us a dataset containing the population on 1 January (1998 to 2023) of each country by age group and sex available via Eurostat. We will do a first exploration as an example of what you will do with other data form Eurostat. 
+
+## Download the dataset
+
+On the Eurostat website (https://ec.europa.eu/eurostat/databrowser), choose the Enhanced navigation tree option at the top of the data tree. Next, navigate to the dataset via Selected Datasets $\rightarrow$ Population and Social Conditions $\rightarrow$ Demography, population stock and balance $\rightarrow$ Population (national level). On this page you see a long list of datasets. We will use the one called "Population on 1 January by age group, sex and citizenship" with code name `migr_pop1ctz`. 
+
+Use this code name to download the data using the code below. Note that downloading the data may take a while. To avoid downloading the data each time you run your .Rmd-file, we recommend that you save the dataset to your computer, e.g. in a subfolder "Data" and from that moment onwards load the data from there.
+
+
+```{r downloadAndSaveData, eval = FALSE}
+# run this code only the first time you knit your .Rmd file (see below)
+# retrieve data
+#install.packages("eurostat")
+library(eurostat)
+
+pop_downloaded = get_eurostat("migr_pop1ctz")
+
+# Save data: 
+write_csv(pop_downloaded, file = "data/pop.csv")
+```
+
+```{r openData, cache = TRUE}
+# Open data from your computer:
+pop = read_csv(file = "data/pop.csv")
+
+# Make dates:
+pop$TIME_PERIOD = as.Date(pop$TIME_PERIOD)
+```
+
+## Content of the dataset
+The Eurostat website about this dataset includes a lot of extra information about the data. Click on the "i" behind the dataset's name to get more information about the data, or click on the dataset's name itself to see the data and some visualisations.
+
+Skim through this information to get to know the data. You can also open de data in R to explore it, e.g.: 
+
+```{r firstGlance}
+dataNL2023 = 
+pop %>%
+  # make the selection:
+  filter( 
+    TIME_PERIOD == "2023-01-01",
+    geo == "NL",
+  )
+
+head(dataNL2023)
+```
+
+An important thing to note is that the datasets usually contain both data from individual countries, plus totals for all the EU countries together, i.e. the total of all the individual countries. To avoid double-counting, you usually filter the data so it contains only the individual countries, or only the totals. 
+
+Additionally, variables `age` and `sex` are specified on multiple lines. There are lines for each age group, but and separate lines for all age groups together (`TOTAL`), and separate lines for each sex (`M`/`F`) and a line for their total (`T`). So again, you usually want to use either the separate groups **or** the totals, but not both to avoid double-counting data. 
+
+## Example data explorations
+
+### Population per country
+For example, to get only the total number of people living in each EU country on January 1st, 2023, and then make a plot to show the values (like the one bar charts available on Eurostat's website). 
+
+
+```{r plotPopulationPerCountry}
+totalPopPerCountry2023 = 
+  pop %>%
+  # make the selection:
+  filter( 
+    TIME_PERIOD == "2023-01-01",
+    age == "TOTAL",
+    sex == "T",
+    geo != "EU27_2020",
+    citizen == "TOTAL"
+  ) 
+  
+ggplot(data = totalPopPerCountry2023,
+       mapping = aes(x = values,
+                    y = reorder(geo,
+                                values,
+                                FUN = "identity"),
+                    )
+       ) + 
+  geom_col() + 
+  scale_x_continuous(name = "Population",
+                     breaks = seq(from = 0, to =  65*10^6, by = 5*10^6),
+                     labels = paste0(seq(from = 0, to = 65, by = 5), "M"),
+                     position = "top") +
+  theme_minimal() + 
+  labs(y = NULL)
+  
+```
+
+
+
+### Where do inhabitants of non-EU citizens come from? 
+
+Are inhabitants in each country originally from that country, from another EU country, or from a non-EU country? We can calculate percentages per country and then show it with a stacked bar chart: 
+
+
+```{r originInhabitants}
+originInhabitants = 
+pop %>%
+  filter(
+          TIME_PERIOD == "2023-01-01",
+          age == "TOTAL",
+          sex == "T",
+          citizen %in% c("NAT",             # Nationals from reporting country
+                         "EU27_2020_FOR",   # EU citizens, not from reporting country
+                         "NEU27_2020_FOR",  # non-EU citizens
+                         "TOTAL")           # Total number of citizens
+  ) %>%
+  
+  # convert data to wide format with the "citizen" labels as separate columns with values from "values"
+  pivot_wider(names_from = citizen, values_from = values) %>%
+  
+  # compute the proportion of population out of the total number of citizens ("TOTAL")
+  mutate(across(EU27_2020_FOR:NEU27_2020_FOR, list(prop = ~ . / TOTAL))) %>%
+  
+  # revert back to a long format
+  pivot_longer(
+    cols = c(NAT_prop, EU27_2020_FOR_prop, NEU27_2020_FOR_prop),
+    names_to = "citizen",
+    values_to = "values"
+  ) 
+
+
+ggplot(data = originInhabitants,
+       mapping =aes(y = geo,
+                    x = values,
+                    fill = citizen
+                    )
+       ) +
+  geom_col(width = .8) +
+  scale_fill_brewer(palette = "Set1",
+                    labels = c("EU", "National", "Non-EU")) +
+  theme(legend.title = element_blank(), legend.position = "bottom")
+   
+```
+```{r}
+gdp = get_eurostat("nama_10_gdp")
+
+```
+
+
+
+
