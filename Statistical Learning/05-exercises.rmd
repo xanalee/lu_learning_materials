@@ -6,6 +6,8 @@ output: pdf_document
 ---
 ```{r}
 library(leaps)
+library(caret)
+library(glmnet)
 ```
 ```{r}
 student_full = read.csv2("student-mat.csv")
@@ -16,15 +18,14 @@ set.seed(519)
 train_id = sample(nrow(student_full), 300)
 train_set = student_full[train_id, ]
 test_set = student_full[-train_id, ]
-predictors = colnames(train_set)[-ncol(train_set)]
-predictors = c('(Intercept)', predictors)
 ```
 ## 1.1
 ```{r}
 subr = regsubsets(G3~., data = train_set, method = 'exhaustive', nvmax = 12)
 subr_result = summary(subr)
 opt_subr_id = which.max((subr_result$cp + subr_result$bic + subr_result$adjr2)/3)
-predictors[subr_result$which[opt_id, ]]
+predictors = colnames(subr_result$which)
+predictors[subr_result$which[opt_subr_id, ]]
 ```
 ## 1.2
 ```{r}
@@ -48,18 +49,100 @@ opt_r
 ```
 The retained variables are different among three methods. The strongest predictors are shown as follows.
 ```{r}
-predictors[apply(opt_r, MARGIN = 2, FUN = all)][-1]
+predictors[apply(opt_r, MARGIN = 2, FUN = all)]
 ```
+The strongest predictors are as above.
+
 ## 1.4
 ```{r}
-test_set[, '(Intercept)'] = 1
-test_set[, predictors[opt_subr]] %*% coef(subr, id = opt_subr_id)
-for (i in names(opt_subr)){
-  if (! i %in% predictors){
-    print(i)
-}
-}
+test_X = model.matrix(G3~., data = test_set)
+subr_y = test_X[, opt_subr] %*% coef(subr, id = opt_subr_id)
+forr_y = test_X[, opt_forr] %*% coef(forr, id = opt_forr_id)
+bacr_y = test_X[, opt_bacr] %*% coef(bacr, id = opt_bacr_id)
+```
+## 1.5
+```{r}
+mse_subr = mean((subr_y - test_set$G3) ** 2)
+mse_forr = mean((forr_y - test_set$G3) ** 2)
+mse_bacr = mean((bacr_y - test_set$G3) ** 2)
+c(subset = mse_subr, forward = mse_forr, backward = mse_bacr)
+```
+# 2.
+## 2.1
+```{r}
+train_X = model.matrix(G3~., data = train_set)
+train_y = train_set$G3
 ```
 ```{r}
-opt_bacr
+set.seed(519)
+ridge_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'gaussian', alpha = 0)
+ridge_cv_model
 ```
+The best ridge regression model uses $\lambda = 0.4298$ and keeps 42 predictors stay.
+```{r}
+plot(ridge_cv_model)
+```
+```{r}
+set.seed(519)
+lasso_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'gaussian', alpha = 1)
+lasso_cv_model
+```
+```{r}
+plot(lasso_cv_model)
+```
+The best lasso regression model uses $\lambda = 0.1995$ and keeps 6 predictors stay.
+```{r}
+set.seed(519)
+elanet_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'gaussian', alpha = 0.5)
+elanet_cv_model
+```
+```{r}
+plot(elanet_cv_model)
+```
+The best elastic net regression model uses $\lambda = 0.275$ and keeps 13 predictors stay.
+
+## 2.2
+```{r}
+coef(ridge_cv_model, s = "lambda.min")
+```
+```{r}
+coef(lasso_cv_model, s = "lambda.min")
+```
+```{r}
+coef(elanet_cv_model, s = "lambda.min")
+```
+## 2.3
+```{r}
+ridge_y = predict(ridge_cv_model, newx = test_X, s = 'lambda.min')
+lasso_y = predict(lasso_cv_model, newx = test_X, s = 'lambda.min')
+elanet_y = predict(elanet_cv_model, newx = test_X, s = 'lambda.min')
+```
+## 2.4
+```{r}
+ridge_mse = mean((ridge_y - test_set$G3)**2)
+lasso_mse = mean((lasso_y - test_set$G3)**2)
+elanet_mse = mean((elanet_y - test_set$G3)**2)
+c('Ridge Regression' = ridge_mse, 'Lasso Regression' = lasso_mse, 'Elastic Net Regression' = elanet_mse)
+```
+The best model is Elastic Net Regression.
+
+# 3.
+## 3.1
+```{r}
+set.seed(519)
+rlasso_cv_model = cv.glmnet(x = train_X, y = train_y, alpha = 1, relax = TRUE)
+rlasso_cv_model
+```
+```{r}
+plot(rlasso_cv_model)
+```
+The optimal $\lambda$ is 0.289 and $\gamma$ is 0.25.
+```{r}
+coef(rlasso_cv_model, s = 'lambda.min')
+```
+```{r}
+rlasso_y = predict(rlasso_cv_model, newx = test_X, s = 'lambda.min')
+rlasso_mse = mean((rlasso_y - test_set$G3)**2)
+c('Ridge Regression' = ridge_mse, 'Lasso Regression' = lasso_mse, 'Elastic Net Regression' = elanet_mse, 'Relax Lasso Regression' = rlasso_mse)
+```
+The best model is Elastic Net Regression.

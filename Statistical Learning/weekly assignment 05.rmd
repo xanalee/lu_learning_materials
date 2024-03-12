@@ -1,0 +1,79 @@
+---
+title: "Weekly Assignment 05"
+author: "Xiang Li"
+date: "2024/3/12"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(glmnet)
+```
+```{r}
+train = readRDS("masq_train.Rda") 
+test = readRDS("masq_test.Rda")
+```
+# a
+```{r}
+cor(train[, 12:100], use = 'complete.obs')[1:10, 1:10]
+```
+We can see that there are some highly correlated relationships among predictors, so we need use variable selection. The performance of these three models could be elastic net regression > lasso regression > ridge regression.
+
+# b
+Choice elastic net (with $\alpha = 0.5$), lasso and relaxed lasso.
+
+# c
+```{r}
+train_X = model.matrix(D_DEPDYS ~ .-1, data = train)
+train_y = train$D_DEPDYS
+test_X = model.matrix(D_DEPDYS ~ .-1, data = test)
+test_y = test$D_DEPDYS
+```
+```{r}
+set.seed(519)
+lasso_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'binomial', alpha = 1)
+lasso_cv_model
+```
+```{r}
+set.seed(519)
+elanet_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'binomial', alpha = 0.5)
+elanet_cv_model
+```
+```{r}
+set.seed(519)
+rlasso_cv_model = cv.glmnet(x = train_X, y = train_y, family = 'binomial', alpha = 1, relax = TRUE)
+rlasso_cv_model
+```
+Based on the binomial deviance, the best model is elastic net ($\alpha = 0.5$).
+
+# d
+```{r}
+elanet_y = predict(elanet_cv_model, newx = test_X, s = 'lambda.min', type = 'response')
+elanet_y = (elanet_y > 0.5) * 1
+elanet_MCR = mean(elanet_y != test_y)
+elanet_MCR
+```
+The MCR of elastic net model on test set is 0.2291.
+
+# e
+```{r}
+coef_mat = coef(elanet_cv_model, s = 'lambda.min')
+coef_result = coef_mat[coef_mat[, 1] != 0, 1]
+coef_result
+```
+```{r}
+select_predictors = c("GENDER", "Leeftijd", "DEMOG2", "DEMOG3", "DEMOG5", "DEMOG6", "DEMOG7", "MASQ01", "MASQ02", "MASQ03", "MASQ04", "MASQ05", "MASQ13", "MASQ14", "MASQ16", "MASQ18", "MASQ21", "MASQ22", "MASQ24", "MASQ29", "MASQ30", "MASQ31", "MASQ33", "MASQ37", "MASQ38", "MASQ41", "MASQ43", "MASQ44", "MASQ50", "MASQ54", "MASQ59", "MASQ60", "MASQ62", "MASQ70", "MASQ76", "MASQ78", "MASQ83", "MASQ89", "MASQ90")
+select_predictors_id = which(colnames(train) %in% select_predictors) - 1
+AD_id = c(1, 14, 18, 21, 23, 26, 27, 30, 33, 35, 36, 39, 40, 44, 49, 53, 58, 66, 72, 78, 86, 89)
+AA_id = c(3, 19, 25, 45, 48, 52, 55, 57, 61, 67, 69, 73, 75, 79, 85, 87, 88)
+GDD_id = c(6, 8, 10, 13, 16, 22, 24, 42, 47, 56, 64, 74)
+GDA_id = c(2, 9, 12, 15, 20, 59, 63, 65, 77, 81, 82)
+GDM_id = c(4, 5, 17, 29, 31, 34, 37, 50, 51, 70, 76, 80, 83, 84, 90)
+print(sum(select_predictors_id %in% AD_id))
+print(sum(select_predictors_id %in% AA_id))
+print(sum(select_predictors_id %in% GDD_id))
+print(sum(select_predictors_id %in% GDA_id))
+print(sum(select_predictors_id %in% GDM_id))
+```
+The Anhedonic Depression subscale.
