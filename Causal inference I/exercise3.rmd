@@ -64,8 +64,71 @@ Yes.
 ## 8
 {IGP, NMF}
 ## 9
+```{r}
+impliedConditionalIndependencies(g.postulated)
+```
+## 10
+```{r}
+## Load and inspect data
+load("sportsData.RData")
+ggpairs(data)+ theme_bw()
+```
+```{r}
+## Perform local tests
+r = localTests(g.postulated, data)
 
+## Adjust using Holm-Bonferroni correction
+## Retain only those tests with adjusted p-value < .05
+r = r[p.adjust(r$p.value) < 0.05, ]
+
+## Plot conditional independencies inconsistent with data
+r = r[order(r$p.value), ]
+par(mar = c(4, 8.5, 1.5, 0.5))
+plotLocalTestResults(r, bty = "n", xlim = c(-0.4, 0.4), ylim = c(0.1, 3.1),
+                     axis.pars = list(las = 1, lty = 0))
+```
+## 11
+Given {C}, TM and WUE are not independent.
+Given {FL}, TM and WUE are not independent.
+Given {PGP}, TM and WUE are not independent.
+
+## 12
+Find a new path between TM and WUE and then find d-seperating set and check the conditional independencies again.
 
 ```{r}
+## Amended DAG
+g.amended <- dagitty('dag {
+  C   [pos="-4.000,-3.000"]
+  CS  [pos="-4.000,3.000"]
+  FL  [pos="1.000,-3.000"]
+  I   [outcome,pos="2.500,3.000"]
+  IGP [pos="-1.000,3.000"]
+  NMF [pos="2.500,-1.000"]
+  PGP [pos="-1.000,-2.000"]
+  PI  [pos="-4.000,1.000"]
+  TM  [pos="-4.000,-1.000"]
+  WUE [exposure,pos="-1.000,0.000"]
+  C   -> { FL TM }
+  CS  -> { IGP PI }
+  FL  -> { NMF PGP }
+  IGP -> I
+  NMF -> { I IGP }
+  PGP -> WUE
+  TM  -> { IGP PI WUE}
+  WUE -> IGP
+  }
+')
 
+## Plotting amended DAG
+plot(g.amended)
 ```
+
+## 13
+{PGP, TM}
+{FL, TM}
+{PGP, TM, C}
+
+## 14
+{PGP, TM}
+{FL, TM}
+{NMF, TM}

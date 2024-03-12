@@ -1,0 +1,65 @@
+---
+title: "05-exercises"
+author: "Xiang Li"
+date: "2024/3/8"
+output: pdf_document
+---
+```{r}
+library(leaps)
+```
+```{r}
+student_full = read.csv2("student-mat.csv")
+```
+# 1.
+```{r}
+set.seed(519)
+train_id = sample(nrow(student_full), 300)
+train_set = student_full[train_id, ]
+test_set = student_full[-train_id, ]
+predictors = colnames(train_set)[-ncol(train_set)]
+predictors = c('(Intercept)', predictors)
+```
+## 1.1
+```{r}
+subr = regsubsets(G3~., data = train_set, method = 'exhaustive', nvmax = 12)
+subr_result = summary(subr)
+opt_subr_id = which.max((subr_result$cp + subr_result$bic + subr_result$adjr2)/3)
+predictors[subr_result$which[opt_id, ]]
+```
+## 1.2
+```{r}
+forr = regsubsets(G3~., data = train_set, method = 'forward', nvmax = 33)
+forr_result = summary(forr)
+bacr = regsubsets(G3~., data = train_set, method = 'backward', nvmax = 33)
+bacr_result = summary(bacr)
+```
+## 1.3
+```{r}
+opt_subr_id = which.max(subr_result$bic)
+opt_subr = subr_result$which[opt_subr_id, ]
+opt_forr_id = which.max(forr_result$bic)
+opt_forr = forr_result$which[opt_forr_id, ]
+opt_bacr_id = which.max(bacr_result$bic)
+opt_bacr = bacr_result$which[opt_bacr_id, ]
+opt_r = matrix(c(opt_subr, opt_forr, opt_bacr), nrow = 3, byrow = TRUE)
+rownames(opt_r) = c('subset', 'forward', 'backward')
+colnames(opt_r) = predictors
+opt_r
+```
+The retained variables are different among three methods. The strongest predictors are shown as follows.
+```{r}
+predictors[apply(opt_r, MARGIN = 2, FUN = all)][-1]
+```
+## 1.4
+```{r}
+test_set[, '(Intercept)'] = 1
+test_set[, predictors[opt_subr]] %*% coef(subr, id = opt_subr_id)
+for (i in names(opt_subr)){
+  if (! i %in% predictors){
+    print(i)
+}
+}
+```
+```{r}
+opt_bacr
+```

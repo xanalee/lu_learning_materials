@@ -37,7 +37,9 @@ g = dagitty('dag {
   HYPERTEN -> { ANGINA HOSPMI STROKE CVD DEATH }
   }
 ')
+jpeg(file="dag.jpg")
 plot(g)
-## Listing all adjustment sets
-adjset = adjustmentSets( g, type = "minimal" )
+dev.off()
+# Listing all adjustment sets
+adjset = adjustmentSets(g, type = "minimal")
 print(1)

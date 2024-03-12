@@ -1,0 +1,113 @@
+---
+title: "Group Assignment15"
+author: "Jiayi Jiang, Jinrui Du, Xiang Li"
+date: "2024/3/11"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+```
+```{r}
+library(dagitty)
+library(ggplot2)
+```
+# Week3
+```{r, fig.height = 8, fig.width = 9}
+g = dagitty('dag {
+  BPMEDS [exposure]
+  DEATH   [outcome]
+  BPMEDS   -> { HYPERTEN  ANGINA HOSPMI STROKE CVD DEATH }
+  SEX  -> { EDUC SYSBP DIABP CURSMOKE BMI HYPERTEN DEATH }
+  AGE  -> { EDUC SYSBP DIABP HYPERTEN DEATH }
+  CURSMOKE -> { SYSBP DIABP HYPERTEN DEATH }
+  SYSBP -> { BPMEDS HEARTRTE }
+  DIABP -> { BPMEDS HEARTRTE }
+  EDUC -> { BPMEDS CURSMOKE BMI DEATH }
+  BMI -> { SYSBP DIABP HYPERTEN DEATH }
+  HEARTRTE  ->  DEATH
+  ANGINA -> DEATH
+  HOSPMI -> DEATH
+  STROKE -> DEATH
+  CVD -> DEATH
+  HYPERTEN -> { ANGINA HOSPMI STROKE CVD DEATH }
+  }
+')
+# jpeg(file="dag.jpg", width = 9, height = 8, units = 'in', res = 300, quality = 100)
+plot(g)
+# dev.off()
+```
+```{r}
+# Listing all adjustment sets
+adjset = adjustmentSets(g, type = "minimal")
+adjset
+```
+# Week4
+```{r}
+data_df = read.csv('framingham_assignment.csv')
+data_df = data_df[!apply(data_df, MARGIN = 1, anyNA), ]
+```
+```{r}
+outcome_r = glm(DEATH ~ BPMEDS + EDUC + SYSBP + DIABP + BPMEDS:EDUC + BPMEDS:SYSBP + BPMEDS:DIABP + SEX + AGE + CURSMOKE + BMI + HEARTRTE, data = data_df, family = 'binomial')
+summary(outcome_r)
+```
+```{r}
+n = nrow(data_df)
+data_bpmeds0_df = data_df
+data_bpmeds0_df$BPMEDS = 0
+data_bpmeds1_df = data_df
+data_bpmeds1_df$BPMEDS = 1
+death0_pro = predict(outcome_r, newdata = data_bpmeds0_df, type = 'link', interval = 'confidence', se.fit = TRUE)
+death0_pro$response_fit = exp(death0_pro$fit) / (1 + exp(death0_pro$fit))
+death0 = rep(0, n)
+death0[death0_pro$response_fit > 0.5] = 1
+death1_pro = predict(outcome_r, newdata = data_bpmeds1_df, type = 'link', interval = 'confidence', se.fit = TRUE)
+death1_pro$response_fit = exp(death1_pro$fit) / (1 + exp(death1_pro$fit))
+death1 = rep(0, n)
+death1[death1_pro$response_fit > 0.5] = 1
+E_DEATH1 = mean(death1)
+E_DEATH0 = mean(death0)
+ATE = E_DEATH1 - E_DEATH0
+c('E(DEATH(1))'=E_DEATH1, 'E(DEATH(0))'=E_DEATH0, ATE=ATE)
+```
+```{r}
+death0_pro$lower = death0_pro$fit - qnorm(0.975)*death0_pro$se.fit
+death0_pro$upper = death0_pro$fit + qnorm(0.975)*death0_pro$se.fit
+death0_pro$response_lower = exp(death0_pro$lower) / (1 + exp(death0_pro$lower))
+death0_pro$response_upper = exp(death0_pro$upper) / (1 + exp(death0_pro$upper))
+death0_lower = rep(0, n)
+death0_lower[death0_pro$response_lower > 0.5] = 1
+death0_upper = rep(0, n)
+death0_upper[death0_pro$response_upper > 0.5] = 1
+
+death1_pro$lower = death1_pro$fit - qnorm(0.975)*death1_pro$se.fit
+death1_pro$upper = death1_pro$fit + qnorm(0.975)*death1_pro$se.fit
+death1_pro$response_lower = exp(death1_pro$lower) / (1 + exp(death1_pro$lower))
+death1_pro$response_upper = exp(death1_pro$upper) / (1 + exp(death1_pro$upper))
+death1_lower = rep(0, n)
+death1_lower[death1_pro$response_lower > 0.5] = 1
+death1_upper = rep(0, n)
+death1_upper[death1_pro$response_upper > 0.5] = 1
+
+ATE_lower = mean(death1_lower) - mean(death0_lower)
+ATE_upper = mean(death1_upper) - mean(death0_upper)
+c(ATE=ATE, lower=ATE_lower, upper=ATE_upper)
+```
+# Week5
+```{r}
+ps_r = glm(BPMEDS ~ EDUC + SYSBP + DIABP + SEX + AGE + CURSMOKE + BMI + HEARTRTE, data = data_df, family = 'binomial')
+summary(ps_r)
+```
+```{r}
+data_df$ps_score = predict(ps_r, newdata = data_df, type = 'response')
+data_df$weight = 1/data_df$ps_score
+ggplot(data = data_df, mapping = aes(x = ps_score, group = as.factor(BPMEDS), color = as.factor(BPMEDS), fill = as.factor(BPMEDS))) +
+  geom_density(alpha = 0.3) +
+  guides(color = guide_legend(title = 'BPMEDS'), fill = guide_legend(title = 'BPMEDS'))
+```
+```{r}
+E_DEATH1 = sum(death1*data_df$weight)/sum(data_df$weight)
+E_DEATH0 = sum(death0*data_df$weight)/sum(data_df$weight)
+ATE = E_DEATH1 - E_DEATH0
+c('E(DEATH(1))'=E_DEATH1, 'E(DEATH(0))'=E_DEATH0, ATE=ATE)
+```

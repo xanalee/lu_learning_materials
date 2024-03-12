@@ -4,3 +4,124 @@ author: "Xiang Li"
 date: "2024/2/13"
 output: pdf_document
 ---
+# Exercise1
+## a
+Randomized trial.
+
+## b
+Eligibility criteria:
+
+participants were recruited from 15 universities across the United States.
+
+Exposure definition (Intervention and control):
+
+X = 0, not receive access to Tess
+X = 2, receive access to Tess for 2 weeks
+X = 4, receive access to Tess for 4 weeks
+
+Assignment procedures:
+
+random assignment at start
+
+Follow-up period:
+
+4 weeks after randomization
+
+Outcome definition:
+
+3 types of survey scores: PHQ-9, GAD-7, PANAS
+
+Causal contrast of interest:
+
+E(Y(4)) - E(Y(2))
+
+E(Y(4)) - E(Y(0))
+
+E(Y(2)) - E(Y(0))
+
+## c
+Yes, because the participants are randomly assigned, so everyone has opportunity to be exposed or not exposed.
+
+## d
+Based on the original assignment result, the output should be marked as Y(4).
+
+# Exercise2
+## a
+Target trial.
+
+## b
+Eligibility criteria:
+
+individuals are registered in Danish registry systems.
+
+Exposure definition (Intervention and control):
+
+X = 0, not confirmed infection of listed enteric pathogens
+
+X = 1, confirmed infection of listed enteric pathogens
+
+Assignment procedures:
+
+based on case data, not randomization
+
+Follow-up period:
+
+1 year follow-up
+
+Outcome definition:
+
+Death or not within 1 year
+
+Causal contrast of interest:
+
+E(Y(1)) - E(Y(0))
+
+## c
+Not exchangeable, because for individuals who have been confirmed infection, they have no opportunity to be not exposed.
+
+# Exercise3
+## a
+```{r}
+set.seed(519)
+n = 10000
+confounder = rbinom(n = n, size = 1, prob = 0.5)
+```
+## b
+```{r}
+exposure = rep(NA, n)
+n0 = length(confounder[confounder == 0])
+n1 = n - n0
+exposure[confounder == 0] = rbinom(n = n0, size = 1, prob = 0.25)
+exposure[confounder == 1] = rbinom(n = n1, size = 1, prob = 0.75)
+```
+## c
+```{r}
+y0 = confounder + rnorm(n)
+y1 = y0
+```
+## d
+```{r}
+outcome = y0 * (1-exposure) + y1 * exposure
+```
+## e
+```{r}
+table(confounder, exposure)
+```
+No exchangeability, because X is not randomly assigned in each confounder group.
+
+## f
+```{r}
+mean(outcome[exposure == 1]) - mean(outcome[exposure == 0])
+```
+Not causal difference, because there is no exchangeability.
+
+## g
+```{r}
+E_outcome1 = mean(outcome[(exposure == 1) & (confounder == 1)])*mean(confounder == 1) + mean(outcome[(exposure == 1) & (confounder == 0)])*mean(confounder == 0)
+E_outcome0 = mean(outcome[(exposure == 0) & (confounder == 1)])*mean(confounder == 1) + mean(outcome[(exposure == 0) & (confounder == 0)])*mean(confounder == 0)
+ATE = E_outcome1 - E_outcome0
+ATE
+```
+# Exercise4
+## a
+
