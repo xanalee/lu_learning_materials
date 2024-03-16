@@ -1,0 +1,91 @@
+---
+title: "Group Assignment Xiang Li"
+author: "Xiang Li"
+date: "2024/3/7"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+```{r}
+library(ggplot2)
+library(cowplot)
+library(lattice)
+library(reshape2)
+```
+Independent variables: sex, Age, SNP, Period
+
+Dependent variables: SHS, Severity
+
+ID variable: id
+
+Time variable: Visit
+```{r}
+load('Group_4.RData')
+data_df = DF
+data_df$SNP = factor(data_df$SNP, levels = 0:2, labels = 0:2)
+# data_t_df_v = list()
+# for (i in 0:7){
+#   data_t_df_v[[i+1]] = data_df[data_df$Visit == i, ]
+# }
+data0_df = data_df[data_df$Visit == 0, ]
+```
+# Descriptive Analysis
+sex, Age, SNP, Period:
+```{r}
+summary(data0_df[, c('sex', 'Age', 'SNP', 'Period')])
+```
+```{r, fig.height = 9, fig.width = 9, fig.align = "center"}
+d1 = ggplot(data = data0_df, mapping = aes(x = Age)) +
+        theme_bw() +
+        geom_density(color = 'skyblue2', fill = 'skyblue2', alpha = 0.4)
+d2 = ggplot(data = data0_df, mapping = aes(x = Age, color = sex, fill = sex)) +
+        theme_bw() +
+        geom_density(alpha = 0.4)
+d3 = ggplot(data = data0_df, mapping = aes(x = Age, color = SNP, fill = SNP)) +
+        theme_bw() +
+        geom_density(alpha = 0.4)
+d4 = ggplot(data = data0_df, mapping = aes(x = Age, color = Period, fill = Period)) +
+        theme_bw() +
+        geom_density(alpha = 0.4)
+plot_grid(d1, d2, d3, d4, ncol = 2, nrow = 2)
+```
+```{r}
+data_df$Age2 = as.factor(ifelse(data_df$Age <= 60, '<=60', '>60'))
+```
+SHS:
+
+Mean structure:
+```{r}
+p1 = xyplot(SHS ~ Visit, groups = id, data = data_df, xlab = "Visit number", ylab = "Sharp index", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#FF0000")})
+p1
+```
+```{r, fig.height = 9, fig.width = 11, fig.align = "center"}
+p2 = xyplot(SHS ~ Visit | sex, groups = id, data = data_df, xlab = "Visit number", ylab = "Sharp index", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#CCFF00")})
+p3 = xyplot(SHS ~ Visit | Age2, groups = id, data = data_df, xlab = "Visit number", ylab = "Sharp index", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#00FF66")})
+p4 = xyplot(SHS ~ Visit | SNP, groups = id, data = data_df, xlab = "Visit number", ylab = "Sharp index", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#0066FF")})
+p5 = xyplot(SHS ~ Visit | Period, groups = id, data = data_df, xlab = "Visit number", ylab = "Sharp index", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#CC00FF")})
+plot_grid(p2, p3, p4, p5, ncol = 2, nrow = 2, labels = c('SHS|sex', 'SHS|Age', 'SHS|SNP', 'SHS|Period'), label_colour = 'black', label_size = 12)
+```
+Variance structure:
+```{r}
+data_df_wide = dcast(data_df[, -which(colnames(data_df) == 'Severity')], id + Period + Age + sex + SNP + Age2 ~ Visit, value.var = 'SHS')
+round(diag(cov(data_df_wide[, c("0", "1", "2", "3", "4", "5", "6", "7")], use = "pairwise.complete.obs")), 2)
+```
+```{r}
+round(cor(data_df_wide[, c("0", "1", "2", "3", "4", "5", "6","7")], use = 'pairwise.complete.obs'), 2)
+```
+Severity:
+
+Mean structure:
+```{r}
+p1 = xyplot(Severity ~ Visit, groups = id, data = data_df, xlab = "Visit number", ylab = "Disease severity", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#FF0000")})
+p1
+```
+```{r, fig.height = 9, fig.width = 11, fig.align = "center"}
+p2 = xyplot(Severity ~ Visit | sex, groups = id, data = data_df, xlab = "Visit number", ylab = "Disease severity", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#CCFF00")})
+p3 = xyplot(Severity ~ Visit | Age2, groups = id, data = data_df, xlab = "Visit number", ylab = "Disease severity", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#00FF66")})
+p4 = xyplot(Severity ~ Visit | SNP, groups = id, data = data_df, xlab = "Visit number", ylab = "Disease severity", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#0066FF")})
+p5 = xyplot(Severity ~ Visit | Period, groups = id, data = data_df, xlab = "Visit number", ylab = "Disease severity", type = "l", panel = function(x, y) {panel.average(x, y, horizontal = FALSE, col = "#CC00FF")})
+plot_grid(p2, p3, p4, p5, ncol = 2, nrow = 2, labels = c('Severity|sex', 'Severity|Age', 'Severity|SNP', 'Severity|Period'), label_colour = 'black', label_size = 12)
+```

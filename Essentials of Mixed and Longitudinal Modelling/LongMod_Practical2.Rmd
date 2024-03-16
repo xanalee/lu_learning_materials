@@ -1,0 +1,375 @@
+---
+title: "Practical 2:  Linear model with correlated errors - Model specification"
+output: 
+  learnr::tutorial:
+    allow_skip: true
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+library("learnr")
+load(file.path("data_long_sub.RData"))
+# Code to create the Treatment variable
+TreatmentGH <- ifelse((data.long.sub$Period == 6 & data.long.sub$group == "GH-placebo") | (data.long.sub$Period == 12 & data.long.sub$group == "placebo-GH"), 2, 0)
+TreatmentPl <- ifelse((data.long.sub$Period == 6 & data.long.sub$group == "placebo-GH") | (data.long.sub$Period == 12 & data.long.sub$group == "GH-placebo"), 1, 0)
+data.long.sub$Treatment <- TreatmentGH + TreatmentPl
+data.long.sub$Treatment <- factor(data.long.sub$Treatment, levels = 0:2, labels = c("Baseline", "Placebo", "GH"))
+
+##
+# Code to create the Treatment variable
+TreatmentGH <- ifelse((data.long$Period == 6 & data.long$group == "GH-placebo") | (data.long$Period == 12 & data.long$group == "placebo-GH"), 2, 0)
+TreatmentPl <- ifelse((data.long$Period == 6 & data.long$group == "placebo-GH") | (data.long$Period == 12 & data.long$group == "GH-placebo"), 1, 0)
+data.long$Treatment <- TreatmentGH + TreatmentPl
+data.long$Treatment <- factor(data.long$Treatment, levels = 0:2, labels = c("Baseline", "Placebo", "GH"))
+
+knitr::opts_chunk$set(echo = FALSE)
+options(tutorial.exercise.timelimit = 1200)
+```
+
+
+## Exercises
+
+The purpose of this practical is to practice fitting the linear regression model with correlated errors using the function `gls(.)` from the `nlme pacakge` and answer research questions based on the output.
+
+<br>
+
+We will consider again the Growth Hormone study of Practical 1, but we will use the subset of 10 children who where treated with placebo in the 1st period and with the growth hormone in the 2nd period (i.e., the "Placebo-GH" treatment order group). We consider growth (cm) in the two treatment periods as two repeated measurements and analyse the data with the multivariate model, using the function `gls(.)` in R package `nlme`.
+
+This dataset is available as object `data.long.sub` and is already loaded in this session. This dataset contains the following variables:
+
+- `PATIENT`: patient number.
+
+- `Growth`: growth (cm).
+
+- `GROUP`: order of treatments (1=GH-placebo; 2=placebo-GH).
+
+- `Treatment`: treatment (0 = Baseline; 1=Placebo; 2=GH).
+
+- `age`: baseline age.
+
+- `SEX`: 1 = male, 2 = female.
+
+- `Period` and `Period.f`: 0 = baseline, 6 = 6 months, 12 = 12 months (as numeric and as factor, respectively).
+
+
+<br>
+
+### Question 1
+
+Check in the data which patients have a missing outcome. For which period? 
+
+
+Fit a multivariate model with growth in the first and second period as outcome. Thus the baseline measurements will not be used in this analysis. Use period as covariate and assume an unstructured variance-covariance matrix for the error terms. Name your model `model.1` Study the obtained output. 
+
+<br>
+
+Give the mathematical formula that describes your model including the assumptions.
+
+
+*Hint:* To define an unstructured covariance matrix check the arguments `correlation` and `weights`. What is your choice for the `method` argument?
+
+```{r P1, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P1-hint-1}
+# gls model with unstructured var-cov matrix
+library(nlme)
+model.1 <- gls(Growth ~ Period.f, 
+               data = data.long.sub, 
+               subset = Period != 0,
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+summary(model.1)
+```
+
+
+
+
+
+```{r P1-hint-2}
+# $y_{ij} = \beta_0 + \beta_1 \mbox{period}_{ij} + \epsilon_{ij}$ 
+# with $i = 1, \ldots, 10$, $j = 1, 2$, 
+# $\beta_{0}$ is the mean growth at period 1, 
+# $\beta_{1}$ is the period effect, 
+# $\mbox{period}_{ij}$ is the period indicator \in\{0, 1\} and 
+# $\mathbf{\epsilon}_i \sim N(\mathbf{0}, \Sigma_i)$ 
+
+#with 
+#$$\Sigma_i = \left[
+#  \begin{array}{cc}
+#  \sigma^2_1  & \sigma_{12}  \\
+#  \sigma_{21} & \sigma^2_2    
+#  \end{array}\right]$$
+```
+
+
+  
+
+
+### Question 2
+What is the correlation in growth between the two periods? What is the variance of the growth in period 1 and in period 2? 
+
+*Hint:* To extract the requested information check the functions `getVarCov(.)` and `cov2cor(.)`.
+
+```{r P2-setup}
+library(nlme)
+model.1 <- gls(Growth ~ Period.f, 
+               data = data.long.sub, 
+               subset = Period != 0,
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+summary(model.1)
+```
+
+```{r P2, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P2-hint-1}
+cov.mat <- getVarCov(model.1, individual = 3)
+cov.mat
+cov2cor(cov.mat)
+```
+
+
+
+### Question 3
+
+What mean growth does the model predict for period 1 and for period 2? What is the estimated difference and corresponding 95\% confidence interval? Is the difference significant?
+
+
+```{r P3-setup}
+library(nlme)
+model.1 <- gls(Growth ~ Period.f, 
+               data = data.long.sub, 
+               subset = Period != 0,
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+summary(model.1)
+```
+
+```{r P3, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P3-hint-1}
+# The estimated parameters are:
+summary(model.1)$ tTable
+
+# Mean growth at Period 1 is 2.41
+# Mean growth at Period 1 is 2.41+2.00.
+# The estimated difference in means between the 2 periods,
+# i.e. period effect is 2.00.
+ 
+```
+
+
+```{r P3-hint-2}
+# For the 95$\%$ CI either use $(\hat{\beta} - 1.96 * \sigma_{\hat{\beta}},  \hat{\beta} + 1.96 * \sigma_{\hat{\beta}})$
+# or $(\hat{\beta} - t_{n-p, 1-\alpha/2} * \sigma_{\hat{\beta}},  \hat{\beta} + t_{n-p, 1-\alpha/2} * \sigma_{\hat{\beta}})$.
+# You can also get it by using the function intervals(.).
+```
+
+```{r P3-hint-3}
+intervals(model.1)
+```
+
+
+### Question 4
+
+Fit a multivariate model that assumes that the variances of the two periods are equal. Name this model `model.2`. How do you call this variance covariance matrix?
+
+
+To test whether the matrix of `model.2` or that of `model.1` fits best the data, we use the function `anova(.)`. What is the derived $p$-value?
+
+
+ 
+```{r P4-setup}
+library(nlme)
+model.1 <- gls(Growth ~ Period.f, 
+               data = data.long.sub, 
+               subset = Period != 0,
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+```
+
+
+
+```{r P4, exercise=TRUE, exercise.lines = 20}
+
+```
+
+
+```{r P4-hint-1}
+# The code is:
+model.2 <- gls(Growth ~ Period.f, 
+               data = data.long.sub, 
+               subset = Period != 0,
+               correlation = corSymm(form = ~ 1 | patient), 
+               na.action = na.exclude, method = "REML")
+model.2
+```
+
+
+```{r P4-hint-2}
+# We compare statically the two models using:
+anova(model.1, model.2)
+
+```
+
+### Question 5
+
+In the rest of this exercise we will use the original dataset and the children from both treatment arm groups, i.e., we will work with the data `data.long` which is already loaded in this session. 
+
+The growth data at baseline, will not be used as one of the dependent variables. 
+
+Fit a model with growth in the first and second treatment period as two repeated outcome variables, include treatment, period and their interaction as covariates, and assume an unstructured variance-covariance matrix. Name this model `model.3`.
+
+
+
+```{r P51-setup}
+
+```
+
+```{r P51, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P51-hint-1}
+
+library(nlme)
+model.3 <- gls(Growth ~ Treatment * Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+model.3
+```
+
+
+
+### Question 6
+
+In the model in Question 5, we assumed that the variances at each period are the same for both treatment order groups i.e., Placebo-GH and GH-Placebo. We can allow that these are different. Fit this model and name it `model.4`. Compare `model.3` and `model.4` using the function `anova(.)`.
+
+
+*Hint:* Check the `varComb` variance function which you can use for the `weights` argument.
+
+
+
+```{r P6-setup}
+library(nlme)
+model.3 <- gls(Growth ~ Treatment * Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Period.f),
+               na.action = na.exclude, method = "REML")
+model.3
+```
+
+```{r P6, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P6-hint-1}
+model.4 <- gls(Growth ~ Treatment * Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varComb(varIdent(form = ~ 1 | Period.f), 
+                                 varIdent(form = ~ 1 | group)),
+               na.action = na.exclude, method = "REML")
+model.4
+```
+
+```{r P6-hint-2}
+# Compare models
+anova(model.3, model.4)
+```
+
+An alternative model would be a model assuming that the variance depends on the treatment but not on the period. Fit this model as well and name it `model.5`. 
+
+
+
+```{r P61-setup}
+library(nlme)
+
+```
+
+```{r P61, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P61-hint-1}
+model.5 <- gls(Growth ~ Treatment * Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Treatment),
+               na.action = na.exclude, method = "REML")
+model.5
+
+
+```
+
+
+
+
+### Question 7
+
+Use `model.5` and reply to the following questions:
+<br>
+- What is the estimated treatment effect in the first period?
+<br>
+- What is the estimated treatment effect in the second period? 
+<br>
+- What is the estimated difference? Look also the corresponding 95\% CI and $p$-value. If it is not statistically significant, then fit a model without interaction. Name this model `model.6`. Give the estimated treatment effect, the 95\% confidence limits and the $p$-value. 
+
+ 
+```{r P7-setup}
+
+library(nlme)
+
+model.5 <- gls(Growth ~ Treatment * Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Treatment),
+               na.action = na.exclude, method = "REML")
+
+```
+
+
+```{r P7, exercise=TRUE, exercise.lines = 20}
+
+```
+
+```{r P7-hint-1}
+# Estimated parameters in model.5
+summary(model.5)$ tTable
+```
+
+
+
+```{r P7-hint-2}
+# Model without the interaction
+model.6 <- gls(Growth ~ Treatment + Period.f, 
+               data = data.long, 
+               subset = Treatment != "Baseline",
+               correlation = corSymm(form = ~ 1 | patient), 
+               weights = varIdent(form = ~ 1 | Treatment),
+               na.action = na.exclude, method = "REML")
+
+summary(model.6)$ tTable
+
+```
+
+

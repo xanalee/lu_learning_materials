@@ -62,7 +62,7 @@ There are three growth measurements for each child. Print the first rows of the 
 
 
 ```{r P1, exercise=TRUE, exercise.lines = 20}
-
+print(head(data., 1))
 ```
 
 ```{r P1-hint-1}
@@ -90,7 +90,7 @@ head(data.long)
 
 
 ### Question 2
-In the first part of the exercise we will not use the multivariate model yet. The aim of this exercise is to practice descriptive methods for repeated measurements . In practical 2, we will analyse this dataset with repeated measurements methods. 
+In the first part of the exercise we will not use the multivariate model yet. The aim of this exercise is to practice descriptive methods for repeated measurements. In practical 2, we will analyse this dataset with repeated measurements methods.
 
 
 Using the `data.long` dataset you created in Question 1, create a table with descriptive statistics for growth (mean and variance) by period and treatment order group. 
