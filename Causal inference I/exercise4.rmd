@@ -1,0 +1,140 @@
+---
+title: "exercise4"
+author: "Xiang Li"
+date: "2024/3/16"
+output: pdf_document
+---
+# Exercise 4.1
+```{r}
+data_df = data.frame(X = c(0, 0, 0, 0, 1, 1, 1, 1), C = c(0, 0, 1, 1, 0, 0, 1, 1), Y = c(0, 1, 0, 1, 0, 1, 0, 1), n = c(80, 20, 20, 10, 80, 20, 80, 40))
+data_df$Yxn = data_df$Y*data_df$n
+```
+## a
+```{r}
+EY1 = sum(data_df[data_df$X == 1, 'Yxn'])/sum(data_df[data_df$X == 1, 'n'])
+EY0 = sum(data_df[data_df$X == 0, 'Yxn'])/sum(data_df[data_df$X == 0, 'n'])
+print(c(EY1, EY0))
+print(EY1-EY0)
+```
+The confounder C makes the exchageablity assumption violated.
+
+## b
+```{r}
+EY_C0_X0 = sum(data_df[(data_df$C == 0) & (data_df$X == 0), 'Yxn'])/sum(data_df[(data_df$C == 0) & (data_df$X == 0), 'n'])
+print(EY_C0_X0)
+EY_C1_X0 = sum(data_df[(data_df$C == 1) & (data_df$X == 0), 'Yxn'])/sum(data_df[(data_df$C == 1) & (data_df$X == 0), 'n'])
+print(EY_C1_X0)
+EY_C0_X1 = sum(data_df[(data_df$C == 0) & (data_df$X == 1), 'Yxn'])/sum(data_df[(data_df$C == 0) & (data_df$X == 1), 'n'])
+print(EY_C0_X1)
+EY_C1_X1 = sum(data_df[(data_df$C == 1) & (data_df$X == 1), 'Yxn'])/sum(data_df[(data_df$C == 1) & (data_df$X == 1), 'n'])
+print(EY_C1_X1)
+PC1 = sum(data_df[data_df$C == 1, 'n'])/sum(data_df$n)
+print(PC1)
+PC0 = sum(data_df[data_df$C == 0, 'n'])/sum(data_df$n)
+print(PC0)
+EY1 = EY_C0_X1*PC0 + EY_C1_X1*PC1
+print(EY1)
+EY0 = EY_C0_X0*PC0 + EY_C1_X0*PC1
+print(EY0)
+ATE = EY1 - EY0
+print(ATE)
+PC0cX1 = sum(data_df[(data_df$C == 0) & (data_df$X == 1), 'n'])/sum(data_df[data_df$X == 1, 'n'])
+PC1cX1 = sum(data_df[(data_df$C == 1) & (data_df$X == 1), 'n'])/sum(data_df[data_df$X == 1, 'n'])
+EY1cX1 = EY_C0_X1 * PC0cX1 + EY_C1_X1 * PC1cX1
+EY0cX1 = EY_C0_X0 * PC0cX1 + EY_C1_X0 * PC1cX1
+ATT = EY1cX1 - EY0cX1
+print(ATT)
+```
+# Exercise 4.2
+```{r}
+load('rhc_exercise.RData')
+library(stdReg)
+```
+## a
+```{r}
+table(rhc$treatment, rhc$death30)
+```
+## b
+```{r}
+outcome_reg = glm(death30 ~ treatment, data = rhc, family = 'binomial')
+print(summary(outcome_reg))
+odds_ratio = exp(outcome_reg$coefficients[2])
+print(odds_ratio)
+```
+No, it hasn't a causal interpretation, because there are confounders that cause assumption validated.
+
+## c
+```{r}
+outcome_reg1 = glm(death30 ~ treatment + transhx + age + surv2md1 + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + aps1, data = rhc, family = 'binomial')
+print(outcome_reg1)
+odds_ratio1 = exp(outcome_reg1$coefficients[2])
+print(odds_ratio1)
+```
+The odds ratio increased after conditioning the confounding variables, which indicates that RHC increases the risk of death within 30 days.
+
+## d
+```{r}
+outcome_reg2 = glm(death30 ~ treatment + transhx + age + surv2md1 + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + aps1 + treatment:transhx + treatment:age + treatment:surv2md1 + treatment:scoma1 + treatment:hrt1 + treatment:bili1 + treatment:wtkilo1 + treatment:cat1 + treatment:aps1, data = rhc, family = 'binomial')
+print(outcome_reg2)
+```
+## e
+```{r}
+rhc1 = rhc
+rhc1$treatment = 'RHC'
+prob_y1 = predict(outcome_reg2, newdata = rhc1, type = 'response')
+```
+## f
+```{r}
+EY1 = mean(prob_y1)
+print(EY1)
+```
+$E(Y(1)) = 0.357$. The average risk of death is 0.357 if every patient receives RHC treatment.
+
+## g
+```{r}
+rhc0 = rhc
+rhc0$treatment = 'no RHC'
+prob_y0 = predict(outcome_reg2, newdata = rhc0, type = 'response')
+EY0 = mean(prob_y0)
+print(EY0)
+```
+$E(Y(0)) = 0.319$. The average risk of death is 0.319 if every patient doesn't receive RHC treatment.
+
+## h
+```{r}
+ATE = EY1 - EY0
+print(ATE)
+odd_ratio2 = (EY1/(1-EY1))/(EY0/(1-EY0))
+print(odd_ratio2)
+```
+The ATE is 0.038, means that receiving RHC treatment will increase 3.8% risk of death compared with not receiving RHC treatment.
+
+The odds ratio is 1.187.
+
+## i
+```{r}
+print(odds_ratio1 - odd_ratio2)
+```
+## j
+```{r}
+std = stdGlm(fit = outcome_reg2, data = rhc, X = 'treatment')
+print(summary(std))
+```
+$E(Y(1))$ is 0.357 and $E(Y(0))$ is 0.319.
+```{r}
+print(summary(std, contrast = 'difference', reference = 'no RHC'))
+```
+ATE is 0.038 and 95% confidence interval of ATE is (0.013, 0.064).
+
+## k
+```{r}
+std1 = stdGlm(fit = outcome_reg2, data = rhc, X = 'treatment', subsetnew = treatment == 'RHC')
+print(summary(std1))
+```
+$E(Y(1) \mid treatment=RHC)$ is 0.339 and $E(Y(0) \mid treatment=RHC)$ is 0.380.
+```{r}
+print(summary(std1, contrast = 'difference', reference = 'no RHC'))
+```
+ATT is 0.0411 and 95% confidence interval of ATE is (0.0145, 0.0676).
+
+For those who currently receive RHC treatment, 4.11% less would have died if they would have not received RHC treatment.

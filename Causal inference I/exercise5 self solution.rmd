@@ -1,0 +1,196 @@
+---
+title: "exercise5"
+author: "Xiang Li"
+date: "2024/3/17"
+output: pdf_document
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
+# Exercise 1
+```{r}
+data_df = data.frame(X = c(0, 0, 0, 0, 1, 1, 1, 1), C = c(0, 0, 1, 1, 0, 0, 1, 1), Y = c(0, 1, 0, 1, 0, 1, 0, 1), n = c(80, 20, 20, 10, 80, 20, 80, 40))
+```
+## a
+```{r}
+PX1cC0 = sum(data_df[(data_df$X == 1) & (data_df$C == 0), 'n']) / sum(data_df[data_df$C == 0, 'n'])
+print(PX1cC0)
+PX1cC1 = sum(data_df[(data_df$X == 1) & (data_df$C == 1), 'n']) / sum(data_df[data_df$C == 1, 'n'])
+print(PX1cC1)
+```
+These probabilities are propensity scores of X=1.
+
+## b
+```{r}
+PX0cC0 = 1 - PX1cC0
+PX0cC1 = 1 - PX1cC1
+WX1cC0 = 1/PX1cC0
+print(WX1cC0)
+WX1cC1 = 1/PX1cC1
+print(WX1cC1)
+WX0cC0 = 1/PX0cC0
+print(WX0cC0)
+WX0cC1 = 1/PX0cC1
+print(WX0cC1)
+```
+
+## c
+```{r}
+data_df$W = 0
+data_df[(data_df$X == 1) & (data_df$C == 0), 'W'] = WX1cC0
+data_df[(data_df$X == 1) & (data_df$C == 1), 'W'] = WX1cC1
+data_df[(data_df$X == 0) & (data_df$C == 0), 'W'] = WX0cC0
+data_df[(data_df$X == 0) & (data_df$C == 1), 'W'] = WX0cC1
+data_df$YxnxW = data_df$Y*data_df$n*data_df$W
+data_df$nxW = data_df$n*data_df$W
+EY1 = sum(data_df[data_df$X == 1, 'YxnxW'])/sum(data_df[data_df$X == 1, 'nxW'])
+print(EY1)
+EY0 = sum(data_df[data_df$X == 0, 'YxnxW'])/sum(data_df[data_df$X == 0, 'nxW'])
+print(EY0)
+ATE = EY1 - EY0
+print(ATE)
+```
+# Exercise 1
+```{r}
+library(cobalt)
+library(survey)
+library(ggplot2)
+library(gridExtra)
+library(survey)
+```
+```{r}
+load('rhc_exercise.RData')
+```
+## a
+```{r}
+ps_model = glm(treatment ~ transhx + age + scoma1 + hrt1 + bili1 + wtkilo1 + cat1, data = rhc, family = 'binomial')
+print(summary(ps_model))
+```
+Except age and scoma1, other variables are strongly associated with treatment.
+
+## b
+```{r}
+rhc$ps1 = predict(ps_model, newdata = rhc, type = 'response')
+rhc$ipw1 = 1/rhc$ps1
+rhc$ipw1[rhc$treatment == 'no RHC'] = 1/(1-rhc$ps1[rhc$treatment == 'no RHC'])
+```
+## c
+```{r}
+vars1 = c("transhx","age","scoma1","hrt1","bili1","wtkilo1","cat1", "surv2md1","aps1")
+covariates = rhc[, vars1]
+table1 = bal.tab(covariates, treat = rhc$treatment, weights = rhc$ipw1, method = "weighting", un=TRUE)
+print(table1)
+```
+```{r}
+# love.plot(covariates, treat = rhc$treatment, weights = rhc$ipw1, method = "weighting", binary = "std", threshold = .1)
+```
+After propensity score weight adjustment by transhx, age, scoma1, hrt1, bili1, wtkilo1, cat1, the treatment is still imbalanced on surv2md1 and aps1.
+
+## d
+```{r}
+ps_model1 = glm(treatment ~ transhx + age + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + surv2md1 + aps1, data = rhc, family = 'binomial')
+print(summary(ps_model1))
+rhc$ps2 = predict(ps_model1, newdata = rhc, type = 'response')
+print(summary(rhc$ps2))
+```
+```{r}
+p1 = ggplot(data = rhc[rhc$treatment == 'RHC', ], mapping = aes(x = ps2)) +
+    geom_histogram(fill = 'red') + labs(title = 'RHC')
+p2 = ggplot(data = rhc[rhc$treatment == 'no RHC', ], mapping = aes(x = ps2)) + geom_histogram(fill = 'blue') + labs(title = 'no RHC')
+grid.arrange(p1, p2, nrow = 2)
+```
+The minimal ps2 is 0.04 and the maximal ps2 is 0.97, which means no individual will get a propensity score 1 or 0. The histograms show overlap between two treatment groups. Positivity assumption holds.
+
+## e
+```{r}
+rhc$ipw2 = (rhc$treatment == 'RHC') * 1/rhc$ps2 + (rhc$treatment == 'no RHC') * 1/(1-rhc$ps2)
+table2 = bal.tab(covariates, treat = rhc$treatment, weights = rhc$ipw2, method = "weighting", un=TRUE)
+print(table2)
+```
+The distribution of all covariates become balanced after reweighting by ps2.
+
+## f
+```{r}
+print(table(rhc$death30))
+rhc$death30 = as.numeric(rhc$death30) - 1
+print(table(rhc$death30))
+```
+## g
+```{r}
+EY1 = weighted.mean(x = rhc[rhc$treatment == 'RHC', 'death30'], w = rhc[rhc$treatment == 'RHC', 'ipw2'])
+EY0 = weighted.mean(x = rhc[rhc$treatment == 'no RHC', 'death30'], w = rhc[rhc$treatment == 'no RHC', 'ipw2'])
+ATE = EY1 - EY0
+print(c(EY1 = EY1, EY0 = EY0, ATE = ATE))
+```
+## h
+```{r}
+d.w = svydesign(~1, weights = rhc$ipw2, data = rhc)
+w_reg = svyglm(death30 ~ treatment, design = d.w)
+print(summary(w_reg))
+print(confint(w_reg))
+```
+The 95% confidence interval of ATE is (0.009, 0.065)
+
+## i
+```{r}
+summary(rhc$ipw2)
+```
+The individual with very large weights can have big effect on the ATE. If they are outliers, the final results will be biased. If weights are very large, they are usually truncated.
+
+## j
+```{r}
+ipw2_99th = quantile(rhc$ipw2, probs=0.99)
+rhc$ipw2_trunc = ifelse(rhc$ipw2 > ipw2_99th, ipw2_99th, rhc$ipw2)
+EY1 = weighted.mean(x = rhc[rhc$treatment == 'RHC', 'death30'], w = rhc[rhc$treatment == 'RHC', 'ipw2_trunc'])
+EY0 = weighted.mean(x = rhc[rhc$treatment == 'no RHC', 'death30'], w = rhc[rhc$treatment == 'no RHC', 'ipw2_trunc'])
+ATE = EY1 - EY0
+print(c(EY1 = EY1, EY0 = EY0, ATE = ATE))
+```
+ATE becomes a little bit larger than weighting by ipw2 but still very similar.
+
+# Exercise 3
+```{r}
+load('rhc_exercise.RData')
+```
+```{r}
+library(MatchIt)
+```
+## a
+```{r}
+match_out1 = matchit(treatment ~ transhx + age + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + surv2md1 + aps1, data = rhc, method = "nearest", distance = "glm")
+print(summary(match_out1))
+```
+ATT is being targeted. 2184 treated individuals and 2184 control individuals are matched. After matching, there is still imbalance in some covariates. For example, the standard mean difference of wtkilo1 on matched data is 0.1108 > 0.1.
+
+## b
+```{r}
+match_out2 = matchit(treatment ~ transhx + age + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + surv2md1 + aps1, data = rhc, method = "nearest", distance = "glm", caliper=0.1)
+print(summary(match_out2))
+```
+Matched individuals become less. 1946 treated individuals and 1946 control individuals are matched. After matching, there is no imbalance in covariates.
+
+## c
+```{r}
+library(dplyr)
+```
+```{r}
+gen_diff = function (data){
+  return(data[1] - data[2])
+}
+match_rhc = match.data(match_out2)
+match_rhc = match_rhc[order(match_rhc$subclass, decreasing = FALSE), ]
+ps_diff = summarise(group_by(match_rhc, subclass), diff=gen_diff(distance))
+ggplot(data = ps_diff, mapping = aes(x = diff)) +
+    geom_histogram()
+```
+As shown on the histogram of propensity score difference within matched pairs, the propensity scores are very similar within matched pairs.
+
+## d
+```{r}
+match_rhc$death30 = as.numeric(match_rhc$death30) - 1
+EY1 = mean(match_rhc[match_rhc$treatment == 'RHC', 'death30'])
+EY0 = mean(match_rhc[match_rhc$treatment == 'no RHC', 'death30'])
+ATE = EY1 - EY0
+print(c(EY1=EY1, EY0=EY0, ATE=ATE))
+```
+ATE is 0.040 which is larger than the result 0.039 of 2.j.

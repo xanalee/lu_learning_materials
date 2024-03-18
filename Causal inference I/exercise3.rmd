@@ -93,11 +93,12 @@ Given {FL}, TM and WUE are not independent.
 Given {PGP}, TM and WUE are not independent.
 
 ## 12
-Find a new path between TM and WUE and then find d-seperating set and check the conditional independencies again.
+Find a new path between TM and WUE and then find d-seperating sets and check the conditional independencies again.
 
+Exercise 3
 ```{r}
 ## Amended DAG
-g.amended <- dagitty('dag {
+g.amended = dagitty('dag {
   C   [pos="-4.000,-3.000"]
   CS  [pos="-4.000,3.000"]
   FL  [pos="1.000,-3.000"]
@@ -127,8 +128,40 @@ plot(g.amended)
 {PGP, TM}
 {FL, TM}
 {PGP, TM, C}
+```{r}
+adjustmentSets(g.amended, type = 'all')
+```
 
 ## 14
 {PGP, TM}
 {FL, TM}
 {NMF, TM}
+```{r}
+adjustmentSets(g.amended, type = 'minimal')
+```
+# Additional (take-home) exercise
+```{r}
+## Generate and plot data
+set.seed(1234)
+n = 1000
+x = rnorm(n, 0, 1)
+y = x + rnorm(n, 0, 1)
+z = y + rnorm(n, 0, 0.1)
+DAT = data.frame(x,y,z)
+xyplot = ggplot(DAT, aes(x = x, y = y)) + geom_point()  
+zyplot = ggplot(DAT, aes(x = z, y = y)) + geom_point()  
+grid.arrange(xyplot, zyplot, ncol = 2)
+```
+## 15
+```{r}
+lm1 = lm(y ~ x, data = DAT)
+summary(lm1)
+```
+```{r}
+lm2 = lm(y ~ z, data = DAT)
+summary(lm2)
+```
+Z would be a better predictor for Y, because the association between Z and Y is stronger.
+
+## 16
+A good predictor in the regression sense doesn't always have a good causal effect on the outcome of interest.

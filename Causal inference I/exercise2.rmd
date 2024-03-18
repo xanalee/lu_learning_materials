@@ -124,4 +124,34 @@ ATE
 ```
 # Exercise4
 ## a
+E(Y(1)) = (10*1 + 90*0)/100 = 0.1
 
+E(Y(0)) = (1000*1 + 9000*0)/10000 = 0.1
+
+E(Y(1)) - E(Y(0)) = 0
+
+E(Y(1)) / E(Y(0)) = 1
+
+(E(Y(1))/(1-E(Y(1)))) / (E(Y(0))/(1-E(Y(0)))) = 1
+
+## b
+                     Cancer (Y=1)      No cancer(Y=0)     Total
+
+Diabetes (X=1)       10*0.2=2          90*0.1=9           11
+
+No Diabetes (X=0)    1000*0.1=100      9000*0.01=90       190
+
+Total                102               99                 201
+
+## c
+E(Y(1)) = (2*1 + 9*0)/11 = 0.182
+
+E(Y(0)) = (100*1 + 90*0)/190 = 0.526
+
+E(Y(1)) - E(Y(0)) = -0.344
+
+E(Y(1)) / E(Y(0)) = 0.346
+
+(E(Y(1))/(1-E(Y(1)))) / (E(Y(0))/(1-E(Y(0)))) = 0.200
+
+The causal contrast is different among these two types of population, because selection bias.

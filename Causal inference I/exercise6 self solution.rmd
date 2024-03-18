@@ -1,0 +1,58 @@
+---
+title: "exercise6 self solution"
+author: "Xiang Li"
+date: "2024/3/18"
+output: pdf_document
+---
+# Part A
+## 1
+```{r}
+# set.seed(519)
+# x = seq(0.001, 1, by=0.001)
+# e = rnorm(1000, mean = 0, sd = 1)
+# y =  2 + 5*x + e
+# dat = data.frame(X=x, Y=y)
+# write.csv(dat, file = 'dat.csv', row.names = FALSE)
+```
+```{r}
+dat = read.csv('dat.csv')
+```
+## 2
+```{r}
+lr = lm(Y ~ X, data = dat)
+print(summary(lr))
+```
+The estimated parameters are accurate.
+
+## 3
+### a
+```{r}
+set.seed(519)
+dat$miss = rbinom(1000, size = 1, prob = 0.5)
+dat$Y_MCAR = ifelse(dat$miss == 1, NA, dat$Y)
+```
+### b
+```{r}
+lr_MCAR = lm(Y_MCAR ~ X, data = dat, )
+print(summary(lr_MCAR))
+```
+The estimated parameters are accurate, but the standard errors become larger.
+
+### c
+```{r}
+library(mice)
+```
+```{r}
+imp = mice(dat[, c('X', 'Y_MCAR')], method="norm", m=5)
+lr_imp_MCAR = with(imp, lm(Y_MCAR ~ X))
+print(summary(lr_imp_MCAR))
+print(summary(pool(lr_imp_MCAR)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+The estimated parameters are accurate and standard errors are similar with the ture values.
+
+## 4
+### a
+```{r}
+
+```
