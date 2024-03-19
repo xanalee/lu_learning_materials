@@ -50,7 +50,7 @@ print(EY0)
 ATE = EY1 - EY0
 print(ATE)
 ```
-# Exercise 1
+# Exercise 2
 ```{r}
 library(cobalt)
 library(survey)

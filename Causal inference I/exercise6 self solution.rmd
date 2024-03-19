@@ -11,7 +11,7 @@ output: pdf_document
 # x = seq(0.001, 1, by=0.001)
 # e = rnorm(1000, mean = 0, sd = 1)
 # y =  2 + 5*x + e
-# dat = data.frame(X=x, Y=y)
+# dat = data.frame(X=x, e=e, Y=y)
 # write.csv(dat, file = 'dat.csv', row.names = FALSE)
 ```
 ```{r}
@@ -54,5 +54,280 @@ The estimated parameters are accurate and standard errors are similar with the t
 ## 4
 ### a
 ```{r}
-
+dat$Y_MAR = ifelse(dat$X > 0.5, NA, dat$Y)
 ```
+### b
+This is missing at random mechanism. Because the missing of Y is dependent on X.
+
+### c
+```{r}
+library(dagitty)
+```
+```{r}
+set.seed(519)
+g = dagitty('dag {
+  X [exposure]
+  Y [outcome]
+  X -> { M Y }
+  e  -> Y
+  }')
+plot(g)
+```
+
+### d
+```{r}
+lr_MAR = lm(Y_MAR ~ X, data = dat)
+print(summary(lr_MAR))
+```
+The coefficients are accurate and standard errors become larger.
+
+### e
+```{r}
+imp = mice(dat[, c('X', 'Y_MAR')], method="norm", m=5)
+lr_imp_MAR = with(imp, lm(Y_MAR ~ X))
+print(summary(lr_imp_MAR))
+print(summary(pool(lr_imp_MAR)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+After multiple imputation, the coefficients are accurate and standard errors are similar with the true values.
+
+## 5
+### a
+```{r}
+dat$Y_MNAR = ifelse(dat$Y > 5, NA, dat$Y)
+```
+### b
+This is missing not at random mechanism. Because the missing of Y is dependent on Y.
+
+### c
+```{r}
+set.seed(519)
+g = dagitty('dag {
+  X [exposure]
+  Y [outcome]
+  X -> Y
+  e  -> Y
+  Y -> M
+  }')
+plot(g)
+```
+
+### d
+```{r}
+lr_MNAR = lm(Y_MNAR ~ X, data = dat)
+print(summary(lr_MNAR))
+```
+The coefficients are not accurate and standard errors are larger.
+
+### e
+```{r}
+imp = mice(dat[, c('X', 'Y_MNAR')], method="norm", m=5)
+lr_imp_MNAR = with(imp, lm(Y_MNAR ~ X))
+print(summary(lr_imp_MNAR))
+print(summary(pool(lr_imp_MNAR)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+After multiple imputation, the coefficients are still not accurate and standard errors are still larger, which means that the imputation is invalid in missing not at random mechanism.
+
+## 6
+### a
+```{r}
+set.seed(19)
+dat1 = dat[, c('X', 'e', 'Y')]
+dat1$Z = rnorm(1000, mean = 0, sd = 1)
+dat1$Y = 2 + 5*dat1$X + dat1$Z + dat1$e
+```
+### b
+```{r}
+dat1$Y_MAR = ifelse((dat1$X > 0.5) & (dat1$Z > 0), NA, dat1$Y)
+set.seed(519)
+g = dagitty('dag {
+  X [exposure]
+  Y [outcome]
+  X -> {M Y}
+  Z -> {M Y}
+  e  -> Y
+  }')
+plot(g)
+```
+
+### c
+```{r}
+lr_MAR1 = lm(Y_MAR ~ X, data = dat1)
+print(summary(lr_MAR1))
+```
+The estimates of the parameters are not accurate.
+
+### d
+```{r}
+imp = mice(dat1[, c('X', 'Y_MAR')], method="norm", m=5)
+lr_imp_MAR1 = with(imp, lm(Y_MAR ~ X))
+print(summary(lr_imp_MAR1))
+print(summary(pool(lr_imp_MAR1)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+After multiple imputation, the estimates of the parameters are still not accurate.
+
+### e
+```{r}
+lr_MAR1 = lm(Y_MAR ~ X + Z, data = dat1)
+print(summary(lr_MAR1))
+```
+Now the estimates of parameters are accurate.
+
+### f
+If Z was measured, this is missing at random mechanism because the missing of Y depend on X and Z. And if Z was not measured, this is missing not at random mechanism.
+
+## 7
+### a
+```{r}
+dat$X_MCAR = ifelse(dat$miss == 1, NA, dat$X)
+lr_MCAR1 = lm(Y ~ X_MCAR, data = dat)
+print(summary(lr_MCAR1))
+```
+The estimates of parameters are accurate, but standard errors are larger.
+
+### b
+```{r}
+setup = mice(dat[, c('X_MCAR', 'Y')])
+predMat = setup$predictorMatrix
+predMat["X_MCAR","Y"] = 0
+imp = mice(dat[, c('X_MCAR', 'Y')], method="norm", predictorMatrix=predMat, m = 5)
+```
+### c
+```{r}
+lr_imp_MCAR1 = with(imp, lm(Y ~ X_MCAR))
+print(summary(lr_imp_MCAR1))
+print(summary(pool(lr_imp_MCAR1)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+The estimates are not accurate.
+
+### d
+```{r}
+imp = mice(dat[, c('X_MCAR', 'Y')], method="norm", m = 5)
+lr_imp_MCAR1 = with(imp, lm(Y ~ X_MCAR))
+print(summary(lr_imp_MCAR1))
+print(summary(pool(lr_imp_MCAR1)))
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+After imputing X on Y, the parameters become accurate.
+
+# Part B
+## 1
+### a
+```{r}
+dat = read.csv('necosad_death_miss.csv', stringsAsFactors = TRUE)[, -c(1, 2)]
+```
+### b
+```{r}
+str(dat)
+```
+```{r}
+summary(dat)
+```
+```{r}
+md.pattern(dat)
+```
+
+## 2
+### a
+```{r}
+log_r = glm(death ~ therapy, data = dat, family = 'binomial')
+print(summary(log_r))
+```
+```{r}
+log_r1 = glm(death ~ therapy + sex + age + bmi + albumin + kidneydisease + smoking + gfr, data = dat, family = 'binomial')
+sum1 = summary(log_r1)
+print(sum1)
+```
+### b?
+```{r}
+print(c(model1=exp(log_r$coefficients[2]), model2=exp(log_r1$coefficients[2])))
+```
+The odds ratio for therapy in model without covariates is 0.66 and in model with covariates is 1.36. It means that in model without covariates the risk of death in PD group is 0.66 times that of HD group, in model with covariates the risk of death in PD group is 1.36 times higher than HD group.
+
+### c
+979 patients in model without covariates and 541 in model with covariates. The sample size changes, and we cannot make sure the difference in odds ratio is due to adding confounders or modeling on different subset of samples.
+
+## 3
+### a
+```{r}
+set.seed(519)
+ini = mice(dat, maxit = 0)
+meth = ini$meth
+meth["gfr"] = "norm"
+imp = mice(dat, method = meth, m = 5)
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+### b
+```{r}
+log_r1_imp = with(imp, glm(death ~ therapy + sex + age + bmi + albumin + kidneydisease + smoking + gfr, family = 'binomial'))
+print(summary(log_r1_imp))
+pool_sum1 = summary(pool(log_r1_imp))
+print(pool_sum1)
+```
+```{r}
+print(exp(sum1$coefficients[, 1]))
+print(exp(pool_sum1$estimate))
+```
+The odds ratio for therapy after imputation is 1.12, which is 1.36 before imputation. The value changed but not much.
+
+### c
+```{r}
+library(ggplot2)
+library(gridExtra)
+```
+```{r}
+p1 = ggplot(data = dat, mapping = aes(x = gfr)) +
+    geom_density(fill = 'blue', alpha = 0.1)
+p2 = ggplot(data = dat_imp[dat_imp$.imp != 0, ], mapping = aes(x = gfr, group = as.factor(.imp), colour = as.factor(.imp))) +
+    geom_density() +
+    scale_color_manual(values = rainbow(5)) +
+    guides(color = guide_legend(title = 'imputation'))
+grid.arrange(p1, p2, nrow = 2)
+```
+
+No, imputation applied a symmetric distribution to generate gfr and generated negative gfr values.
+
+## 4
+### a
+```{r}
+dat$loggfr = log(dat$gfr+1)
+ggplot(data = dat, mapping = aes(x = loggfr)) +
+    geom_density(fill = 'blue', alpha = 0.1)
+```
+
+### b
+```{r}
+ini = mice(dat, maxit = 0)
+# define methods for imputation
+meth["loggfr"] = "norm"
+meth["gfr"] = "~I(exp(loggfr)-1)"
+# and do not use gfr in the imputation models
+predMat = ini$predictorMatrix
+predMat[,"gfr"] = 0
+imp = mice(dat, method = meth, predictorMatrix = predMat, m = 5)
+dat_imp = complete(imp, "long", inc = TRUE)
+```
+### c
+```{r}
+ggplot(data = dat_imp[dat_imp$.imp != 0, ], mapping = aes(x = gfr, group = as.factor(.imp), colour = as.factor(.imp))) +
+    geom_density() +
+    scale_color_manual(values = rainbow(5)) +
+    guides(color = guide_legend(title = 'imputation'))
+```
+The imputed gfr values now follow an asymmetric distribution, but still have negative values. It's more plausible.
+
+### d
+```{r}
+log_r1_imp1 = with(imp, glm(death ~ therapy + sex + age + bmi + albumin + kidneydisease + smoking + gfr, family = 'binomial'))
+print(summary(log_r1_imp1))
+pool_sum2 = summary(pool(log_r1_imp1))
+print(pool_sum2)
+```
+```{r}
+print(exp(sum1$coefficients[, 1]))
+print(exp(pool_sum2$estimate))
+```
+The odds ratio for therapy after new imputation is 1.14, which is 1.36 in b and 1.12 in c. The value improved but not much. Because the imputation of other variables have not been checked.
