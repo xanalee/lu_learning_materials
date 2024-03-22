@@ -1,0 +1,171 @@
+---
+title: "06-exercises"
+author: "Xiang Li"
+date: "2024/3/19"
+output: pdf_document
+---
+```{r}
+library(ISLR2)
+library(nFactors)
+library(GPArotation)
+library(psych)
+library(EFA.dimensions)
+```
+# Exercise 1
+## a
+```{r}
+data_College = read.csv('data_College.csv')
+rownames(data_College) = data_College$X
+data_College = data_College[, -1]
+```
+```{r}
+print(colnames(data_College[, -1]))
+print(sum(apply(is.na(data_College), 1, sum)))
+data_College = data_College[, -c(1,2)]
+print(dim(data_College))
+```
+## b
+```{r}
+prc = prcomp(data_College, scale = FALSE)
+summary(prc)
+```
+```{r}
+prc_scl = prcomp(data_College, scale = TRUE)
+summary(prc_scl)
+```
+There is a difference. Because different scale on original variables will affect weight of each variable.
+```{r}
+par(mfrow=c(1,2))
+plot(prc)
+plot(prc_scl)
+```
+
+## c
+```{r}
+ev = eigen(cor(data_College))
+ev$values
+```
+For Kaiser’s rule, we need the eigenvalues and use the cut-off at 1. Therefore we keep 3 components.
+```{r}
+pve_scl = summary(prc_scl)$importance[2,]
+cum_pve_scl = summary(prc_scl)$importance[3,]
+pve = summary(prc)$importance[2,]
+cum_pve = summary(prc)$importance[3,]
+par(mfrow=c(2,2))
+plot(pve_scl, type="b", xlab="Component number (sc.)", ylab="Proportion variance explained", ylim=c(0,1))
+plot(cum_pve_scl, type="b", xlab="Number of components (sc.)", ylab="Cumulative prop. var. expl.", ylim=c(0,1))
+plot(pve, type="b", xlab="Component number (unsc.)", ylab="Proportion variance explained", ylim=c(0,1))
+plot(cum_pve, type="b", xlab="Number of components (unsc.)", ylab="Cumulative prop. var. expl.", ylim=c(0,1))
+```
+```{r}
+nElem=length(cum_pve_scl)
+ratios=(cum_pve_scl[2:(nElem-1)]-cum_pve_scl[1:(nElem-2)])/(cum_pve_scl[3:nElem]-cum_pve_scl[2:(nElem-1)])
+ratios
+nComponents_selected = which.max(ratios) + 1
+nComponents_selected
+```
+```{r}
+nElem=length(cum_pve)
+ratios=(cum_pve[2:(nElem-1)]-cum_pve[1:(nElem-2)])/(cum_pve[3:nElem]-cum_pve[2:(nElem-1)])
+ratios
+nComponents_selected = which.max(ratios) + 1
+nComponents_selected
+```
+Based on the scree plot, we would probably select 2 components in scale PCA and 7 components in unscale PCA. So, the scaled and unscaled results can indeed be very different.
+
+Horn’s parallel analysis for the scaled version:
+```{r}
+ev = eigen(cor(data_College))
+ap = parallel(subject=nrow(data_College), var=ncol(data_College), rep=1000)
+nS = nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS,main="")
+```
+Velicer’s MAP test based on partial correlations:
+```{r}
+MAP(data_College, corkind='pearson', verbose=TRUE)
+```
+In sum, the different methods lead to different number of components, but 2 and 3 components are supported by more than one method each.
+
+## d
+```{r}
+round(prc_scl$rotation[,1:2], 3)
+```
+```{r}
+round(prc_scl$rotation[,1:3], 3)
+```
+## e
+```{r}
+par(mfrow=c(1,1))
+biplot(prc_scl, scale=0 , cex=.5)
+```
+
+## f
+```{r}
+unrot2 = round(prc_scl$rotation[,1:2], 6)
+varimax2 = varimax(prc_scl$rotation[,1:2])
+varimax2
+```
+```{r}
+unrot3 = round(prc_scl$rotation[,1:3], 6)
+varimax3 = varimax(prc_scl$rotation[,1:3])
+varimax3
+```
+The rotated component loadings do differ for the two PCAs. Moreover, the loadings are generally low and that several variables load on all components. In such cases, one can opt to drop variables that do not contribute to any of the components.
+
+# Exercise 2
+```{r}
+data_hep = read.csv('data_hepthathlon.csv')
+rownames(data_hep) = data_hep$X
+data_hep = data_hep[, -1]
+```
+```{r}
+prc_scl = prcomp(data_hep, scale = TRUE)
+summary(prc_scl)
+```
+Kaiser’s rule:
+```{r}
+ev = eigen(cor(data_hep))
+ev$values
+```
+Keep 2 components.
+
+scree plot:
+```{r}
+pve_scl = summary(prc_scl)$importance[2,]
+cum_pve_scl = summary(prc_scl)$importance[3,]
+par(mfrow=c(2,1))
+plot(pve_scl, type="b", xlab="Component number (sc.)", ylab="Proportion variance explained", ylim=c(0,1))
+plot(cum_pve_scl, type="b", xlab="Number of components (sc.)", ylab="Cumulative prop. var. expl.", ylim=c(0,1))
+nElem = length(cum_pve_scl)
+ratios = (cum_pve_scl[2:(nElem-1)]-cum_pve_scl[1:(nElem-2)])/(cum_pve_scl[3:nElem]-cum_pve_scl[2:(nElem-1)])
+ratios
+nComponents_selected = which.max(ratios) + 1
+nComponents_selected
+```
+Keep 5 components.
+
+Horn’s parallel analysis:
+```{r}
+ev = eigen(cor(data_hep))
+ap = parallel(subject=nrow(data_hep), var=ncol(data_hep), rep=1000)
+nS = nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+plotnScree(nS,main="")
+```
+
+Finally, I keep 2 components.
+```{r}
+cum_pve_scl
+```
+80.78% of variance will be explained by the first 2 components.
+```{r}
+prc_scl$rotation[, 1:2]
+```
+hurdles loads high on PC1 and javelin loads high on PC2. It's hard to interpret PC1 and PC2.
+```{r}
+unrot = round(prc_scl$rotation[,1:2], 3)
+unrot
+prc_scl_rot = varimax(prc_scl$rotation[,1:2])
+prc_scl_rot
+```
+
+
