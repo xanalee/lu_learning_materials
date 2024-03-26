@@ -190,7 +190,7 @@ As shown on the histogram of propensity score difference within matched pairs, t
 match_rhc$death30 = as.numeric(match_rhc$death30) - 1
 EY1 = mean(match_rhc[match_rhc$treatment == 'RHC', 'death30'])
 EY0 = mean(match_rhc[match_rhc$treatment == 'no RHC', 'death30'])
-ATE = EY1 - EY0
-print(c(EY1=EY1, EY0=EY0, ATE=ATE))
+ATT = EY1 - EY0
+print(c(EY1=EY1, EY0=EY0, ATT=ATT))
 ```
-ATE is 0.040 which is larger than the result 0.039 of 2.j.
+ATT is 0.040 which is larger than the result 0.039 of 2.j.

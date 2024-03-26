@@ -4,6 +4,9 @@ author: "Xiang Li"
 date: "2024/2/20"
 output: pdf_document
 ---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
 ```{r}
 ## Install and invoke packages
 if(!"dagitty" %in% .packages(all = TRUE)) install.packages("dagitty")
@@ -45,24 +48,32 @@ g.postulated = dagitty('dag {
 ## Plotting DAG
 plot(g.postulated)
 ```
+
 ## 1
 {CS, TM, WUE, NMF}
+
 ## 2
 {IGP, CS, TM, C, WUE, PGP, FL, NMF}
+
 ## 3
 {IGP, I}
+
 ## 4
 {PI, IGP, I}
+
 ## 5
 {C->FL->NMF->I, C->FL->NMF->IGP->I, C->FL->PGP->WUE->IGP->I, C->TM->IGP->I}
+
 ## 6
 Yes.
 
 # Exercise 2
 ## 7
 {}
+
 ## 8
 {IGP, NMF}
+
 ## 9
 ```{r}
 impliedConditionalIndependencies(g.postulated)
@@ -87,6 +98,9 @@ par(mar = c(4, 8.5, 1.5, 0.5))
 plotLocalTestResults(r, bty = "n", xlim = c(-0.4, 0.4), ylim = c(0.1, 3.1),
                      axis.pars = list(las = 1, lty = 0))
 ```
+
+Because it makes no assumption of independence between the consecutive tests.
+
 ## 11
 Given {C}, TM and WUE are not independent.
 Given {FL}, TM and WUE are not independent.
@@ -95,7 +109,7 @@ Given {PGP}, TM and WUE are not independent.
 ## 12
 Find a new path between TM and WUE and then find d-seperating sets and check the conditional independencies again.
 
-Exercise 3
+# Exercise 3
 ```{r}
 ## Amended DAG
 g.amended = dagitty('dag {
@@ -152,6 +166,7 @@ xyplot = ggplot(DAT, aes(x = x, y = y)) + geom_point()
 zyplot = ggplot(DAT, aes(x = z, y = y)) + geom_point()  
 grid.arrange(xyplot, zyplot, ncol = 2)
 ```
+
 ## 15
 ```{r}
 lm1 = lm(y ~ x, data = DAT)

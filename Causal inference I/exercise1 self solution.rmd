@@ -4,6 +4,9 @@ author: "Xiang Li"
 date: "2024/2/6"
 output: pdf_document
 ---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(tidy_opts = list(width.cutoff = 55), tidy = TRUE)
+```
 # 2
 ```{r}
 data = data.frame(id = 1:10, y_chocolate = c(4, 4, 6, 5, 6, 5, 6, 7, 5, 6), y_vanilla = c(1, 3, 4, 5, 5, 6, 8, 6, 3, 5))
@@ -19,8 +22,7 @@ apply(data[,2:4], 2, FUN = mean)
 # 3
 ## 3a
 ```{r}
-data$obs_x = 'chocolate'
-data$obs_x[data$y_vanilla > data$y_chocolate] = 'vanilla'
+data$obs_x = ifelse(data$y_vanilla >= data$y_chocolate, 'vanilla', 'chocolate')
 data$obs_y = pmax(data$y_chocolate, data$y_vanilla)
 ```
 ## 3b
@@ -43,10 +45,7 @@ library(dplyr)
 ```{r}
 ## we are doing something *random* so let's set a seed so we always observe the same result each time we run the code
 set.seed(11)
-data_observed = select(mutate(data, exposure = case_when(rbinom(10, 1,
-0.5) == 1 ~ "chocolate", TRUE ~ "vanilla"), observed_outcome = case_when(
-  exposure == "chocolate" ~ y_chocolate, exposure == "vanilla" ~ y_vanilla)),
-   id, exposure, observed_outcome)
+data_observed = select(mutate(data, exposure = case_when(rbinom(10, 1, 0.5) == 1 ~ "chocolate", TRUE ~ "vanilla"), observed_outcome = case_when(exposure == "chocolate" ~ y_chocolate, exposure == "vanilla" ~ y_vanilla)), id, exposure, observed_outcome)
 ```
 ```{r}
 mean(data_observed[data_observed$exposure == 'chocolate', 'observed_outcome']) - mean(data_observed[data_observed$exposure == 'vanilla', 'observed_outcome'])

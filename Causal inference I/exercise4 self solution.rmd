@@ -69,7 +69,7 @@ No, it hasn't a causal interpretation, because there are confounders that cause 
 ## c
 ```{r}
 outcome_reg1 = glm(death30 ~ treatment + transhx + age + surv2md1 + scoma1 + hrt1 + bili1 + wtkilo1 + cat1 + aps1, data = rhc, family = 'binomial')
-print(outcome_reg1)
+print(summary(outcome_reg1))
 odds_ratio1 = exp(outcome_reg1$coefficients[2])
 print(odds_ratio1)
 ```

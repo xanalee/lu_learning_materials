@@ -172,6 +172,10 @@ After multiple imputation, the estimates of the parameters are still not accurat
 ```{r}
 lr_MAR1 = lm(Y_MAR ~ X + Z, data = dat1)
 print(summary(lr_MAR1))
+imp = mice(dat1[, c('X', 'Z', 'Y_MAR')], method="norm", m=5)
+lr_imp_MAR1 = with(imp, lm(Y_MAR ~ X + Z))
+print(summary(lr_imp_MAR1))
+print(summary(pool(lr_imp_MAR1)))
 ```
 Now the estimates of parameters are accurate.
 
